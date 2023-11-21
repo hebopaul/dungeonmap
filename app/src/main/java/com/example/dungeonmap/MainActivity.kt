@@ -5,11 +5,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -30,9 +36,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
+import kotlin.math.roundToInt
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +111,8 @@ fun TerrainScreen() {
 @Composable
 fun Terrain(connectedModifier: Modifier) {
 
+
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -111,7 +124,32 @@ fun Terrain(connectedModifier: Modifier) {
             contentDescription = "Imported image",
             painter = painterResource(R.drawable.m03_tombofhorrors_300)
         )
+
+        var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
+        Icon(
+            painterResource(id = R.drawable.minotaur_berserker),
+            "token",
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectDragGesturesAfterLongPress { _, dragAmount ->
+                        val summed = tokenOffset + dragAmount
+                        val newValue = Offset(
+                            x = summed.x,
+                            y = summed.y
+                        )
+                        tokenOffset = newValue
+                    }
+                }
+                .graphicsLayer {
+                    translationX = tokenOffset.x
+                    translationY = tokenOffset.y
+                }
+
+        )
     }
+
+
 
 }
 
