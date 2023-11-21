@@ -79,13 +79,16 @@ fun TerrainScreen() {
     //that use it, moving as one, with each other, and with the terrain when
     //dragging or zooming on it.
     val connectedModifier  = Modifier
-        .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
-            state = rememberTransformableState { zoomChange, offsetChange, rotation ->
-                if (lockedScale) scale = scale
-                else scale *= zoomChange
-                offset += offsetChange
+        .pointerInput(Unit) {
+            detectDragGesturesAfterLongPress { _, dragAmount ->
+                val summed = offset + dragAmount
+                val newValue = Offset(
+                    x = summed.x,
+                    y = summed.y
+                )
+                offset = newValue
             }
-        )
+        }
         .graphicsLayer { //This alters the image position and scale
             scaleX = scale.coerceIn(0.4F, 10F)
             scaleY = scale.coerceIn(0.4F, 10F)
@@ -112,7 +115,7 @@ fun TerrainScreen() {
 fun Terrain(connectedModifier: Modifier) {
 
 
-
+    var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -128,7 +131,7 @@ fun Terrain(connectedModifier: Modifier) {
     Box(
         modifier = Modifier
     ) {
-        var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
+
         Icon(
             painterResource(id = R.drawable.minotaur_berserker),
             "token",
