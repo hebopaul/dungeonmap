@@ -81,7 +81,7 @@ fun TerrainScreen() {
     val connectedModifier  = Modifier
         .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
             state = rememberTransformableState { zoomChange, offsetChange, rotation ->
-                if (lockedScale) scale = scale
+                if (lockedScale)
                 else scale *= zoomChange
                 offset += offsetChange
             }
@@ -112,7 +112,7 @@ fun TerrainScreen() {
 fun Terrain(connectedModifier: Modifier) {
 
 
-
+    var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -128,7 +128,7 @@ fun Terrain(connectedModifier: Modifier) {
     Box(
         modifier = Modifier
     ) {
-        var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
+
         Icon(
             painterResource(id = R.drawable.minotaur_berserker),
             "token",
