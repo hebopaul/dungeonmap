@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -42,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
+import com.example.dungeonmap.ui.utilities.toDp
 import kotlin.math.roundToInt
 
 
@@ -137,6 +139,10 @@ fun Terrain(connectedModifier: Modifier) {
             "token",
             tint = Color.Unspecified,
             modifier = Modifier
+                .offset(
+                    tokenOffset.x.toDp,
+                    tokenOffset.y.toDp
+                )
                 .pointerInput(Unit) {
                     detectDragGesturesAfterLongPress { _, dragAmount ->
                         val summed = tokenOffset + dragAmount
@@ -147,11 +153,6 @@ fun Terrain(connectedModifier: Modifier) {
                         tokenOffset = newValue
                     }
                 }
-                .graphicsLayer {
-                    translationX = tokenOffset.x
-                    translationY = tokenOffset.y
-                }
-
         )
     }
 
