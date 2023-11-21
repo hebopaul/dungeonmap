@@ -124,7 +124,10 @@ fun Terrain(connectedModifier: Modifier) {
             contentDescription = "Imported image",
             painter = painterResource(R.drawable.m03_tombofhorrors_300)
         )
-
+    }
+    Box(
+        modifier = Modifier
+    ) {
         var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
         Icon(
             painterResource(id = R.drawable.minotaur_berserker),
