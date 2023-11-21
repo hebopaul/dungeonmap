@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,10 +70,12 @@ fun TerrainScreen() {
     val connectedModifier  = Modifier
         .pointerInput(Unit) {
             detectDragGestures { _, dragAmount ->
-                viewModel.updateWorldOffset(Size(
-                    dragAmount.x.toInt(),
-                    dragAmount.y.toInt()
-                ))
+                viewModel.updateWorldOffset(
+                    Size(
+                        dragAmount.x.toInt(),
+                        dragAmount.y.toInt()
+                    )
+                )
             }
         }
         .graphicsLayer { // This alters the image position and scale
@@ -110,9 +113,13 @@ fun Terrain(modifier: Modifier, viewModel: MainViewModel) {
         )
     }
 
-    TokenView(token = viewModel.playerToken) { offset ->
-        viewModel.moveToken(viewModel.playerToken.id, offset)
+    viewModel.playerToken.collectAsState(initial = null).value?.let {
+        TokenView(token = it) { offset ->
+            viewModel.moveToken(it.id, offset)
+        }
     }
+
+
 }
 
 @Composable

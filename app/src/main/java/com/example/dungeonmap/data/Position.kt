@@ -11,3 +11,8 @@ operator fun Position.plus(size: Size) = Position(
     x = this.x + size.width,
     y = this.y + size.height
 )
+
+operator fun Position.times(scale: Float) = Position(
+    x = (this.x * scale).toInt(),
+    y = (this.y * scale).toInt()
+)
