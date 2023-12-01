@@ -5,44 +5,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dungeonmap.data.MapState
+import com.example.dungeonmap.data.TokenState
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
-import kotlin.math.roundToInt
 
 
 class MainActivity : ComponentActivity() {
@@ -51,7 +38,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             DungeonMapTheme {
                 DungeonMapApp()
-                painterResource(R.drawable.m03_tombofhorrors_300)
             }
         }
     }
@@ -64,33 +50,33 @@ fun DungeonMapApp() {
 }
 
 @Composable
-fun TerrainScreen() {
+fun TerrainScreen(
+    mainViewModel: MainViewModel = viewModel()
+) {
 
-    //Prepping the variables that will hold the state of
-    //the map to enable dragging and zooming
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    //var scale by remember { mutableStateOf(1f) }
+    //var offset by remember { mutableStateOf(Offset.Zero) }
 
     //This enables the user to lock the zoom of the map
-    var lockedScale by remember {mutableStateOf(false)}
+    //var lockedScale by remember {mutableStateOf(false)}
+    val tokenState by mainViewModel.tokenState.collectAsState()
+    val mapState by mainViewModel.mapState.collectAsState()
 
-    //Since there will be tokens representing characters on the map
-    //we are going to need a shared modifier that keeps all the composables
-    //that use it, moving as one, with each other, and with the terrain when
-    //dragging or zooming on it.
     val connectedModifier  = Modifier
         .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
             state = rememberTransformableState { zoomChange, offsetChange, rotation ->
-                if (lockedScale)
-                else scale *= zoomChange
-                offset += offsetChange
+                if (!mapState.isScaleLocked) {
+                    mapState.mapOffset.plus(offsetChange)
+                    tokenState.moveCollectivePosition(offsetChange)
+                }
             }
         )
         .graphicsLayer { //This alters the image position and scale
-            scaleX = scale.coerceIn(0.4F, 10F)
-            scaleY = scale.coerceIn(0.4F, 10F)
-            translationX = offset.x
-            translationY = offset.y
+            scaleX = mapState.mapScale.coerceIn(0.4F, 10F)
+            scaleY = mapState.mapScale.coerceIn(0.4F, 10F)
+            translationX = mapState.mapOffset.x
+            translationY = mapState.mapOffset.y
             println("Offset X = $translationX   -   Offset Y = $translationY   -   Scale = $scaleX")
         }
         .animateContentSize()
@@ -98,10 +84,15 @@ fun TerrainScreen() {
     Box(
         modifier = Modifier
     ) {
-        Terrain(connectedModifier)
+        Terrain(
+            connectedModifier,
+            tokenState,
+            mapState
+        )
 
         TerrainUI(
-            onLockedScaleClicked = {lockedScale = !lockedScale; println ("Locked scale = $lockedScale")}
+            tokenState,
+            mapState
         )
     }
 }
@@ -109,10 +100,12 @@ fun TerrainScreen() {
 //This is basically the main surface of the app
 // i.e the image that acts as the playing board of the game
 @Composable
-fun Terrain(connectedModifier: Modifier) {
+fun Terrain(
+    modifier: Modifier,
+    tokenState: TokenState,
+    mapState: MapState
+) {
 
-
-    var tokenOffset by remember { mutableStateOf(Offset(0f, 0f))}
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -120,9 +113,11 @@ fun Terrain(connectedModifier: Modifier) {
         ) {
         Image(
             //We use the connectedModifier that was declared inside the TerrainScreen() Composable
-            modifier = connectedModifier,
+            modifier = modifier,
             contentDescription = "Imported image",
-            painter = painterResource(R.drawable.m03_tombofhorrors_300)
+            painter = painterResource(
+                mapState.imageResource
+            )
         )
     }
     Box(
@@ -130,24 +125,19 @@ fun Terrain(connectedModifier: Modifier) {
     ) {
 
         Icon(
-            painterResource(id = R.drawable.minotaur_berserker),
-            "token",
-            tint = Color.Unspecified,
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectDragGesturesAfterLongPress { _, dragAmount ->
-                        val summed = tokenOffset + dragAmount
-                        val newValue = Offset(
-                            x = summed.x,
-                            y = summed.y
-                        )
-                        tokenOffset = newValue
+            painterResource(id = tokenState.imageResource),
+                tokenState.name,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .pointerInput(Unit) {
+                        detectDragGestures { _, dragAmount ->
+                            tokenState.moveBy(dragAmount)
+                        }
                     }
-                }
-                .graphicsLayer {
-                    translationX = tokenOffset.x
-                    translationY = tokenOffset.y
-                }
+                    .graphicsLayer {
+                        translationX = tokenState.position.value.x
+                        translationY = tokenState.position.value.y
+                    }
 
         )
     }
@@ -161,9 +151,9 @@ fun Terrain(connectedModifier: Modifier) {
 // on the Terrain
 @Composable
 fun TerrainUI(
-    onLockedScaleClicked: () -> Unit
+    tokenState: TokenState,
+    mapState: MapState
 ) {
-    var lockedIcon by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -172,12 +162,11 @@ fun TerrainUI(
     ){
         IconButton(
             onClick = {
-                onLockedScaleClicked()
-                lockedIcon = !lockedIcon
+                mapState.lockedScaleIconClicked()
             },
             content = {
                 Icon(
-                    if (lockedIcon) Icons.Filled.Lock else Icons.Filled.LockOpen,
+                    if (mapState.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
                     contentDescription = "Locked scale icon",
                     tint = Color.Black
                 )
