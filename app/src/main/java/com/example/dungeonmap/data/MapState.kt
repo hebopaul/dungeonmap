@@ -1,9 +1,6 @@
 package com.example.dungeonmap.data
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import com.example.dungeonmap.R
 
 data class MapState (
@@ -29,11 +26,9 @@ data class MapState (
             mapOffset.x + offset.x,
             mapOffset.y + offset.y
         )
-        TokenState.collectivePosition = mutableStateOf(
-            Offset(
+        TokenState.collectivePosition =Offset(
                 mapOffset.x + offset.x,
                 mapOffset.y + offset.y
-            )
         )
     }
 }
