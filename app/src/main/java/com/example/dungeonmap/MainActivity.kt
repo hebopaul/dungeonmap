@@ -65,7 +65,7 @@ fun TerrainScreen(
 
     val connectedModifier  = Modifier
         .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
-            state = rememberTransformableState { zoomChange, offsetChange, rotation ->
+            state = rememberTransformableState { _, offsetChange, rotation ->
                 if (!mapState.isScaleLocked) {
                     mapState.mapOffset.plus(offsetChange)
                     tokenState.moveCollectivePosition(offsetChange)
@@ -135,8 +135,8 @@ fun Terrain(
                         }
                     }
                     .graphicsLayer {
-                        translationX = tokenState.position.value.x
-                        translationY = tokenState.position.value.y
+                        translationX = tokenState.position.x
+                        translationY = tokenState.position.y
                     }
 
         )
@@ -177,7 +177,7 @@ fun TerrainUI(
 
 @Preview
 @Composable
-fun testing () {
+fun Testing () {
     Box(
         modifier = Modifier
             .fillMaxHeight(),
