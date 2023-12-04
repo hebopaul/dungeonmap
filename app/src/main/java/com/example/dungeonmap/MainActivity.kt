@@ -17,8 +17,8 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,23 +60,24 @@ fun TerrainScreen(
 
     //This enables the user to lock the zoom of the map
     //var lockedScale by remember {mutableStateOf(false)}
-    val tokenState by mainViewModel.tokenState.collectAsState()
-    val mapState by mainViewModel.mapState.collectAsState()
+    //val tokenState by mainViewModel.tokenState.collectAsState()
+    //val mapState by mainViewModel.mapState.collectAsState()
 
     val connectedModifier  = Modifier
         .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
             state = rememberTransformableState { _, offsetChange, rotation ->
-                if (!mapState.isScaleLocked) {
-                    mapState.mapOffset.plus(offsetChange)
-                    tokenState.moveCollectivePosition(offsetChange)
+                if (!mainViewModel.mapState.value.isScaleLocked) {
+                    mainViewModel.moveMapBy(offsetChange)
+                    mainViewModel.tokenState.value.moveCollectivePosition(offsetChange)
+
                 }
             }
         )
         .graphicsLayer { //This alters the image position and scale
-            scaleX = mapState.mapScale.coerceIn(0.4F, 10F)
-            scaleY = mapState.mapScale.coerceIn(0.4F, 10F)
-            translationX = mapState.mapOffset.x
-            translationY = mapState.mapOffset.y
+            scaleX = mainViewModel.mapState.value.mapScale.coerceIn(0.4F, 10F)
+            scaleY = mainViewModel.mapState.value.mapScale.coerceIn(0.4F, 10F)
+            translationX = mainViewModel.mapState.value.mapOffset.x
+            translationY = mainViewModel.mapState.value.mapOffset.y
             println("Offset X = $translationX   -   Offset Y = $translationY   -   Scale = $scaleX")
         }
         .animateContentSize()
@@ -86,14 +87,11 @@ fun TerrainScreen(
     ) {
         Terrain(
             connectedModifier,
-            tokenState,
-            mapState
+            mainViewModel.tokenState.collectAsState(),
+            mainViewModel.mapState.collectAsState()
         )
 
-        TerrainUI(
-            tokenState,
-            mapState
-        )
+        TerrainUI(mainViewModel.mapState.collectAsState())
     }
 }
 
@@ -102,8 +100,9 @@ fun TerrainScreen(
 @Composable
 fun Terrain(
     modifier: Modifier,
-    tokenState: TokenState,
-    mapState: MapState
+    tokenState: State<TokenState>,
+    mapState: State<MapState>
+
 ) {
 
     Box(
@@ -116,7 +115,7 @@ fun Terrain(
             modifier = modifier,
             contentDescription = "Imported image",
             painter = painterResource(
-                mapState.imageResource
+                id = mapState.value.imageResource
             )
         )
     }
@@ -125,18 +124,18 @@ fun Terrain(
     ) {
 
         Icon(
-            painterResource(id = tokenState.imageResource),
-                tokenState.name,
+            painterResource(id = tokenState.value.imageResource),
+                tokenState.value.name,
                 tint = Color.Unspecified,
                 modifier = Modifier
                     .pointerInput(Unit) {
                         detectDragGestures { _, dragAmount ->
-                            tokenState.moveBy(dragAmount)
+                            tokenState.value.moveBy(dragAmount)
                         }
                     }
                     .graphicsLayer {
-                        translationX = tokenState.position.x
-                        translationY = tokenState.position.y
+                        translationX = tokenState.value.position.x
+                        translationY = tokenState.value.position.y
                     }
 
         )
@@ -151,8 +150,7 @@ fun Terrain(
 // on the Terrain
 @Composable
 fun TerrainUI(
-    tokenState: TokenState,
-    mapState: MapState
+    mapState: State<MapState>
 ) {
 
     Box(
@@ -161,12 +159,10 @@ fun TerrainUI(
         contentAlignment = Alignment.BottomEnd
     ){
         IconButton(
-            onClick = {
-                mapState.lockedScaleIconClicked()
-            },
+            onClick = { MainViewModel().lockedScaleIconClicked()},
             content = {
                 Icon(
-                    if (mapState.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
+                    if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
                     contentDescription = "Locked scale icon",
                     tint = Color.Black
                 )
