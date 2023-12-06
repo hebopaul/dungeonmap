@@ -27,7 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
-import com.example.dungeonmap.ui.utilities.toDp
+
 
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +57,7 @@ fun TerrainScreen() {
         .fillMaxSize()
         .pointerInput (Unit) {
             detectTransformGestures { _, dragChange, scaleChange, _ ->
-                mainViewModel.updateMapScale(scaleChange)
+                if(!mapState.value.isScaleLocked) mainViewModel.updateMapScale(scaleChange)
                 mainViewModel.updateMapOffset(dragChange)
             }
         }
