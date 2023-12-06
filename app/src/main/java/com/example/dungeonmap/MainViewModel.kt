@@ -11,42 +11,52 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel: ViewModel() {
 
-    init {
-    }
 
     private val _mapState = MutableStateFlow(MapState())
     private val _tokenState = MutableStateFlow(TokenState())
     val mapState: StateFlow<MapState> = _mapState.asStateFlow()
     val tokenState: StateFlow<TokenState> = _tokenState.asStateFlow()
 
+    var collectiveTokenOffset: Offset = Offset(0F, 0F)
 
-    fun setMapImage(drawable: Int) {
-        _mapState.value.copy(
-            imageResource = drawable
+    fun updateMapOffset(newOffset: Offset) {
+        _mapState.value = _mapState.value.copy(
+            mapOffset = Offset(
+                mapState.value.mapOffset.x + newOffset.x,
+                mapState.value.mapOffset.y + newOffset.y
+            )
         )
+        collectiveTokenOffset = _mapState.value.mapOffset
+
     }
 
-    fun setMapScale(newScale: Float) {
-        _mapState.value.copy(
+    fun updateMapScale(newScale: Float) {
+        _mapState.value = _mapState.value.copy(
             mapScale = newScale
         )
     }
 
-    fun lockedScaleIconClicked () {
-        _mapState.value.copy(
-            isScaleLocked = !_mapState.value.isScaleLocked
+    fun updateTokenOffset(newPosition: Offset) {
+        _tokenState.value = _tokenState.value.copy(
+            position = Offset(
+                tokenState.value.position.x + newPosition.x + collectiveTokenOffset.x,
+                tokenState.value.position.y + newPosition.y + collectiveTokenOffset.y
+            )
         )
     }
 
-    fun moveMapBy(offset: Offset) {
-        _mapState.value.copy(
-            mapOffset = Offset(
-                _mapState.value.mapOffset.x + offset.x,
-                _mapState.value.mapOffset.y + offset.y
-            )
+    fun lockedScaleIconClicked() {
+        _mapState.value = _mapState.value.copy(
+            isScaleLocked = !mapState.value.isScaleLocked
         )
-        _tokenState.value.moveCollectivePosition(offset)
     }
+
+
+
+
+
+
+
 
 
 

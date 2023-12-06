@@ -9,3 +9,8 @@ data class MapState (
     var mapScale: Float = 1F,
     var isScaleLocked: Boolean = false
 )
+
+
+
+
+

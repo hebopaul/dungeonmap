@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,8 +26,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.dungeonmap.data.MapState
-import com.example.dungeonmap.data.TokenState
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 
 
@@ -50,34 +47,27 @@ fun DungeonMapApp() {
 }
 
 @Composable
-fun TerrainScreen(
-    mainViewModel: MainViewModel = viewModel()
-) {
+fun TerrainScreen() {
 
-
-    //var scale by remember { mutableStateOf(1f) }
-    //var offset by remember { mutableStateOf(Offset.Zero) }
-
-    //This enables the user to lock the zoom of the map
-    //var lockedScale by remember {mutableStateOf(false)}
-    //val tokenState by mainViewModel.tokenState.collectAsState()
-    //val mapState by mainViewModel.mapState.collectAsState()
+    val mainViewModel: MainViewModel = viewModel()
+    val mapState = mainViewModel.mapState.collectAsState()
 
     val connectedModifier  = Modifier
         .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
-            state = rememberTransformableState { _, offsetChange, rotation ->
-                if (!mainViewModel.mapState.value.isScaleLocked) {
-                    mainViewModel.moveMapBy(offsetChange)
-                    mainViewModel.tokenState.value.moveCollectivePosition(offsetChange)
+            state = rememberTransformableState { scaleChange, offsetChange, _ ->
 
+                mainViewModel.updateMapOffset(offsetChange)
+                if (!mapState.value.isScaleLocked) {
+                    mainViewModel.updateMapScale(scaleChange)
                 }
             }
         )
         .graphicsLayer { //This alters the image position and scale
-            scaleX = mainViewModel.mapState.value.mapScale.coerceIn(0.4F, 10F)
-            scaleY = mainViewModel.mapState.value.mapScale.coerceIn(0.4F, 10F)
-            translationX = mainViewModel.mapState.value.mapOffset.x
-            translationY = mainViewModel.mapState.value.mapOffset.y
+
+            scaleX = mapState.value.mapScale.coerceIn(0.4F, 10F)
+            scaleY = mapState.value.mapScale.coerceIn(0.4F, 10F)
+            translationX = mapState.value.mapOffset.x
+            translationY = mapState.value.mapOffset.y
             println("Offset X = $translationX   -   Offset Y = $translationY   -   Scale = $scaleX")
         }
         .animateContentSize()
@@ -87,11 +77,10 @@ fun TerrainScreen(
     ) {
         Terrain(
             connectedModifier,
-            mainViewModel.tokenState.collectAsState(),
-            mainViewModel.mapState.collectAsState()
+            mainViewModel
         )
 
-        TerrainUI(mainViewModel.mapState.collectAsState())
+        TerrainUI(mainViewModel)
     }
 }
 
@@ -100,11 +89,10 @@ fun TerrainScreen(
 @Composable
 fun Terrain(
     modifier: Modifier,
-    tokenState: State<TokenState>,
-    mapState: State<MapState>
-
+    mainViewModel: MainViewModel
 ) {
-
+    val token = mainViewModel.tokenState.collectAsState()
+    val map = mainViewModel.mapState.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -115,7 +103,7 @@ fun Terrain(
             modifier = modifier,
             contentDescription = "Imported image",
             painter = painterResource(
-                id = mapState.value.imageResource
+                id = map.value.imageResource
             )
         )
     }
@@ -124,18 +112,18 @@ fun Terrain(
     ) {
 
         Icon(
-            painterResource(id = tokenState.value.imageResource),
-                tokenState.value.name,
+            painterResource(token.value.imageResource),
+                token.value.name ?: "",
                 tint = Color.Unspecified,
                 modifier = Modifier
                     .pointerInput(Unit) {
                         detectDragGestures { _, dragAmount ->
-                            tokenState.value.moveBy(dragAmount)
+                            mainViewModel.updateTokenOffset(dragAmount)
                         }
                     }
                     .graphicsLayer {
-                        translationX = tokenState.value.position.x
-                        translationY = tokenState.value.position.y
+                        translationX = mainViewModel.tokenState.value.position.x
+                        translationY = mainViewModel.tokenState.value.position.y
                     }
 
         )
@@ -150,16 +138,16 @@ fun Terrain(
 // on the Terrain
 @Composable
 fun TerrainUI(
-    mapState: State<MapState>
+    mainViewModel: MainViewModel
 ) {
-
+    val mapState = mainViewModel.mapState.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.BottomEnd
     ){
         IconButton(
-            onClick = { MainViewModel().lockedScaleIconClicked()},
+            onClick = { mainViewModel.lockedScaleIconClicked()},
             content = {
                 Icon(
                     if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
