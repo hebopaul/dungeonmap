@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 
@@ -113,19 +115,19 @@ fun Terrain(
 
         Icon(
             painterResource(token.value.imageResource),
-                token.value.name ?: "",
+                token.value.name?: "",
                 tint = Color.Unspecified,
                 modifier = Modifier
+                    .offset(
+                        x = token.value.position.x.dp,
+                        y = token.value.position.y.dp
+                    )
                     .pointerInput(Unit) {
                         detectDragGestures { _, dragAmount ->
                             mainViewModel.updateTokenOffset(dragAmount)
                         }
                     }
-                    .graphicsLayer {
-                        translationX = mainViewModel.tokenState.value.position.x
-                        translationY = mainViewModel.tokenState.value.position.y
-                    }
-
+                    .animateContentSize()
         )
     }
 

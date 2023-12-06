@@ -17,8 +17,6 @@ class MainViewModel: ViewModel() {
     val mapState: StateFlow<MapState> = _mapState.asStateFlow()
     val tokenState: StateFlow<TokenState> = _tokenState.asStateFlow()
 
-    var collectiveTokenOffset: Offset = Offset(0F, 0F)
-
     fun updateMapOffset(newOffset: Offset) {
         _mapState.value = _mapState.value.copy(
             mapOffset = Offset(
@@ -26,8 +24,7 @@ class MainViewModel: ViewModel() {
                 mapState.value.mapOffset.y + newOffset.y
             )
         )
-        collectiveTokenOffset = _mapState.value.mapOffset
-
+        updateTokenOffset(newOffset)
     }
 
     fun updateMapScale(newScale: Float) {
@@ -39,8 +36,8 @@ class MainViewModel: ViewModel() {
     fun updateTokenOffset(newPosition: Offset) {
         _tokenState.value = _tokenState.value.copy(
             position = Offset(
-                tokenState.value.position.x + newPosition.x + collectiveTokenOffset.x,
-                tokenState.value.position.y + newPosition.y + collectiveTokenOffset.y
+                _tokenState.value.position.x + newPosition.x,
+                _tokenState.value.position.y + newPosition.y
             )
         )
     }
