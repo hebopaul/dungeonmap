@@ -6,8 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,14 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
+import com.example.dungeonmap.ui.utilities.toDp
 
 
 class MainActivity : ComponentActivity() {
@@ -52,10 +51,35 @@ fun DungeonMapApp() {
 fun TerrainScreen() {
 
     val mainViewModel: MainViewModel = viewModel()
-    val mapState = mainViewModel.mapState.collectAsState()
+    val mapState = mainViewModel.backgroundMap.collectAsState()
 
     val connectedModifier  = Modifier
-        .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
+        .fillMaxSize()
+        .pointerInput (Unit) {
+            detectTransformGestures { _, dragChange, scaleChange, _ ->
+                mainViewModel.updateMapScale(scaleChange)
+                mainViewModel.updateMapOffset(dragChange)
+            }
+        }
+        .offset(
+            x = mapState.value.mapOffset.x.toDp,
+            y = mapState.value.mapOffset.y.toDp
+        )
+        .scale(
+            scale = mapState.value.mapScale,
+        )
+        .animateContentSize()
+
+    /*Log.d("Size change", "Size = ${
+        mapState.value.mapScale.toDp * LocalConfiguration.current.screenHeightDp
+    }")*/
+
+
+
+
+
+
+       /* .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
             state = rememberTransformableState { scaleChange, offsetChange, _ ->
 
                 mainViewModel.updateMapOffset(offsetChange)
@@ -66,13 +90,13 @@ fun TerrainScreen() {
         )
         .graphicsLayer { //This alters the image position and scale
 
-            scaleX = mapState.value.mapScale.coerceIn(0.4F, 10F)
-            scaleY = mapState.value.mapScale.coerceIn(0.4F, 10F)
+            scaleX = mapState.value.mapScale
+            scaleY = mapState.value.mapScale
             translationX = mapState.value.mapOffset.x
             translationY = mapState.value.mapOffset.y
             println("Offset X = $translationX   -   Offset Y = $translationY   -   Scale = $scaleX")
         }
-        .animateContentSize()
+        .animateContentSize()*/
 
     Box(
         modifier = Modifier
@@ -93,8 +117,8 @@ fun Terrain(
     modifier: Modifier,
     mainViewModel: MainViewModel
 ) {
-    val token = mainViewModel.tokenState.collectAsState()
-    val map = mainViewModel.mapState.collectAsState()
+    val token = mainViewModel.token.collectAsState()
+    val map = mainViewModel.backgroundMap.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -111,6 +135,7 @@ fun Terrain(
     }
     Box(
         modifier = Modifier
+            .fillMaxSize()
     ) {
 
         Icon(
@@ -119,14 +144,15 @@ fun Terrain(
                 tint = Color.Unspecified,
                 modifier = Modifier
                     .offset(
-                        x = token.value.position.x.dp,
-                        y = token.value.position.y.dp
+                        x = token.value.position.x.toDp,
+                        y = token.value.position.y.toDp
                     )
                     .pointerInput(Unit) {
                         detectDragGestures { _, dragAmount ->
                             mainViewModel.updateTokenOffset(dragAmount)
                         }
                     }
+                    .scale((token.value.scale))
                     .animateContentSize()
         )
     }
@@ -142,7 +168,7 @@ fun Terrain(
 fun TerrainUI(
     mainViewModel: MainViewModel
 ) {
-    val mapState = mainViewModel.mapState.collectAsState()
+    val mapState = mainViewModel.backgroundMap.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxSize(),
