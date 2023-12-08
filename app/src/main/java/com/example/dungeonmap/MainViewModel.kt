@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+const val MAX_ZOOM_IN: Float = 1F
+const val MAX_ZOOM_OUT: Float = 10F
+var defaultTokenSize: Float? = null
 
 class MainViewModel: ViewModel() {
 
@@ -28,34 +31,42 @@ class MainViewModel: ViewModel() {
                 backgroundMap.value.mapOffset.y + newOffset.y
             )
         )
-        updateTokenOffset(newOffset)
+        _token.value = _token.value.copy(
+            position = Offset(
+                token.value.position.x + newOffset.x,
+                token.value.position.y + newOffset.y
+            )
+        )
     }
 
     //This function is called when the user pinches to zoom in or out
-    fun updateMapScale(newScale: Float) {
-        _backgroundMap.value = _backgroundMap.value.copy(
-            mapScale = newScale * backgroundMap.value.mapScale.coerceIn(1F, 10F)
-        )
-        _token.value = _token.value.copy(
-            scale = newScale * token.value.scale.coerceIn(1F, 10F)
-        )
-        //In order for the map to stay centered on the screen when zooming in or out, we need to
-        //update the map offset as well
-        val newOffset = Offset(
-            backgroundMap.value.mapOffset.x * newScale,
-            backgroundMap.value.mapOffset.y * newScale
-        )
-        _backgroundMap.value = _backgroundMap.value.copy(
-            mapOffset = newOffset
-        )
-        //We also need to do the same for the token offset
-        _token.value = _token.value.copy(
-            position = Offset(
-                token.value.position.x * newScale,
-                token.value.position.y * newScale
-            )
-        )
+    fun updateMapScale(scaleChange: Float) {
 
+        if (scaleChange != 0F && !_backgroundMap.value.isScaleLocked){
+            _backgroundMap.value = _backgroundMap.value.copy(
+                mapScale = scaleChange * backgroundMap.value.mapScale.coerceIn(MAX_ZOOM_IN, MAX_ZOOM_OUT)
+            )
+            _token.value = _token.value.copy(
+                scale = scaleChange * token.value.scale.coerceIn(MAX_ZOOM_IN, MAX_ZOOM_OUT)
+            )
+
+            //In order for the map to stay centered on the screen when zooming in or out, we need to
+            //update the map offset as well
+            _backgroundMap.value = _backgroundMap.value.copy(
+                mapOffset = Offset(
+                    backgroundMap.value.mapOffset.x * scaleChange,
+                    backgroundMap.value.mapOffset.y * scaleChange
+                )
+            )
+            //We also need to update the token offset so that it stays in the same position on the map
+            if (_backgroundMap.value.mapScale < 10F && _backgroundMap.value.mapScale > 1F)
+                _token.value = _token.value.copy(
+                position = Offset(
+                    token.value.position.x * scaleChange,
+                    token.value.position.y * scaleChange
+                )
+            )
+        }
 
 
         Log.d(
@@ -71,10 +82,13 @@ class MainViewModel: ViewModel() {
     fun updateTokenOffset(newPosition: Offset) {
         _token.value = _token.value.copy(
             position = Offset(
-                _token.value.position.x + newPosition.x,
-                _token.value.position.y + newPosition.y
+                _token.value.position.x + newPosition.x *
+                        backgroundMap.value.mapScale * _token.value.tokenSize,
+                _token.value.position.y + newPosition.y *
+                        backgroundMap.value.mapScale * _token.value.tokenSize
             )
         )
+        Log.d("Token moved", "token offset = ${token.value.position}")
     }
 
     //This function is called when the user clicks the lock scale button
@@ -84,29 +98,14 @@ class MainViewModel: ViewModel() {
         )
     }
 
+    fun updateTokenSize(sizeChange: Float) {
+        _token.value = _token.value.copy(
+            tokenSize = (token.value.tokenSize + (sizeChange * 0.001F)).coerceIn(0.04F, 2F)
+        )
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    fun setDefaultTokenSize(defaultSize: Float) {
+        defaultTokenSize = defaultSize
+    }
 
 }

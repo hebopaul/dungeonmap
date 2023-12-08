@@ -1,14 +1,15 @@
 package com.example.dungeonmap
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
@@ -24,7 +25,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 
@@ -57,7 +57,7 @@ fun TerrainScreen() {
         .fillMaxSize()
         .pointerInput (Unit) {
             detectTransformGestures { _, dragChange, scaleChange, _ ->
-                if(!mapState.value.isScaleLocked) mainViewModel.updateMapScale(scaleChange)
+                mainViewModel.updateMapScale(scaleChange)
                 mainViewModel.updateMapOffset(dragChange)
             }
         }
@@ -65,38 +65,9 @@ fun TerrainScreen() {
             x = mapState.value.mapOffset.x.toDp,
             y = mapState.value.mapOffset.y.toDp
         )
-        .scale(
-            scale = mapState.value.mapScale,
-        )
+        .scale( mapState.value.mapScale )
         .animateContentSize()
 
-    /*Log.d("Size change", "Size = ${
-        mapState.value.mapScale.toDp * LocalConfiguration.current.screenHeightDp
-    }")*/
-
-
-
-
-
-
-       /* .transformable( //This takes the gestures (dragging, pinching) from the user and updates their state
-            state = rememberTransformableState { scaleChange, offsetChange, _ ->
-
-                mainViewModel.updateMapOffset(offsetChange)
-                if (!mapState.value.isScaleLocked) {
-                    mainViewModel.updateMapScale(scaleChange)
-                }
-            }
-        )
-        .graphicsLayer { //This alters the image position and scale
-
-            scaleX = mapState.value.mapScale
-            scaleY = mapState.value.mapScale
-            translationX = mapState.value.mapOffset.x
-            translationY = mapState.value.mapOffset.y
-            println("Offset X = $translationX   -   Offset Y = $translationY   -   Scale = $scaleX")
-        }
-        .animateContentSize()*/
 
     Box(
         modifier = Modifier
@@ -135,7 +106,8 @@ fun Terrain(
     }
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
 
         Icon(
@@ -147,18 +119,22 @@ fun Terrain(
                         x = token.value.position.x.toDp,
                         y = token.value.position.y.toDp
                     )
+                    .scale((token.value.scale * token.value.tokenSize))
                     .pointerInput(Unit) {
+
                         detectDragGestures { _, dragAmount ->
                             mainViewModel.updateTokenOffset(dragAmount)
                         }
                     }
-                    .scale((token.value.scale))
+                    .pointerInput(Unit) {
+                        detectDragGesturesAfterLongPress { _, dragAmount ->
+                            mainViewModel.updateTokenSize(dragAmount.y)
+                        }
+                    }
                     .animateContentSize()
-        )
+            )
+        Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
     }
-
-
-
 }
 
 
@@ -182,28 +158,6 @@ fun TerrainUI(
                     contentDescription = "Locked scale icon",
                     tint = Color.Black
                 )
-            }
-        )
-    }
-}
-
-@Preview
-@Composable
-fun Testing () {
-    Box(
-        modifier = Modifier
-            .fillMaxHeight(),
-        contentAlignment = Alignment.BottomEnd
-
-    ){
-        Image(
-            painterResource (R.drawable.m03_tombofhorrors_300), ""
-        )
-        IconButton(
-
-            onClick = { /*TODO*/ },
-            content = {
-                Icon(Icons.Filled.Lock, "")
             }
         )
     }
