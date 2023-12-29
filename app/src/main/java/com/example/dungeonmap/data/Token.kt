@@ -6,7 +6,7 @@ import com.example.dungeonmap.defaultTokenSize
 import java.util.UUID
 
 data class Token (
-    private val tokenId: UUID = UUID.randomUUID(),
+    val tokenId: UUID = UUID.randomUUID(),
     var position: Offset = Offset(0F, 0F),
     var imageResource: Int = R.drawable.minotaur_berserker,
     var name: String? = null,

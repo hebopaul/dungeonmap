@@ -10,13 +10,16 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -55,7 +58,7 @@ fun TerrainScreen() {
 
     val connectedModifier  = Modifier
         .fillMaxSize()
-        .pointerInput (Unit) {
+        .pointerInput(Unit) {
             detectTransformGestures { _, dragChange, scaleChange, _ ->
                 mainViewModel.updateMapScale(scaleChange)
                 mainViewModel.updateMapOffset(dragChange)
@@ -65,7 +68,7 @@ fun TerrainScreen() {
             x = mapState.value.mapOffset.x.toDp,
             y = mapState.value.mapOffset.y.toDp
         )
-        .scale( mapState.value.mapScale )
+        .scale(mapState.value.mapScale)
         .animateContentSize()
 
 
@@ -109,31 +112,32 @@ fun Terrain(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-
-        Icon(
-            painterResource(token.value.imageResource),
-                token.value.name?: "",
+        token.value.forEachIndexed { i, token ->
+            Icon(
+                painterResource(token.imageResource),
+                token.name ?: "",
                 tint = Color.Unspecified,
                 modifier = Modifier
                     .offset(
-                        x = token.value.position.x.toDp,
-                        y = token.value.position.y.toDp
+                        x = token.position.x.toDp,
+                        y = token.position.y.toDp
                     )
-                    .scale((token.value.scale * token.value.tokenSize))
+                    .scale((token.scale * token.tokenSize))
                     .pointerInput(Unit) {
 
                         detectDragGestures { _, dragAmount ->
-                            mainViewModel.updateTokenOffset(dragAmount)
+                            mainViewModel.updateTokenOffset(dragAmount, token.tokenId)
                         }
                     }
                     .pointerInput(Unit) {
                         detectDragGesturesAfterLongPress { _, dragAmount ->
-                            mainViewModel.updateTokenSize(dragAmount.y)
+                            mainViewModel.updateTokenSize(dragAmount.y, token.tokenId)
                         }
                     }
                     .animateContentSize()
             )
-        Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
+        }
+            //Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
     }
 }
 
@@ -150,15 +154,26 @@ fun TerrainUI(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomEnd
     ){
-        IconButton(
-            onClick = { mainViewModel.lockedScaleIconClicked()},
-            content = {
-                Icon(
-                    if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
-                    contentDescription = "Locked scale icon",
-                    tint = Color.Black
-                )
-            }
-        )
+        Row {
+
+            Button(
+                onClick = { mainViewModel.createToken()},
+                content = {
+                    Text("Add Token")
+                }
+            )
+
+            IconButton(
+                onClick = { mainViewModel.lockedScaleIconClicked() },
+                content = {
+                    Icon(
+                        if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
+                        contentDescription = "Locked scale icon",
+                        tint = Color.Black
+                    )
+                }
+            )
+
+        }
     }
 }
