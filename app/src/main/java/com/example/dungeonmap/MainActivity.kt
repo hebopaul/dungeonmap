@@ -1,9 +1,13 @@
 package com.example.dungeonmap
 
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -29,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 
 
@@ -80,7 +85,7 @@ fun TerrainScreen() {
             mainViewModel
         )
 
-        TerrainUI(mainViewModel)
+
     }
 }
 
@@ -89,22 +94,32 @@ fun TerrainScreen() {
 @Composable
 fun Terrain(
     modifier: Modifier,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
 ) {
     val token = mainViewModel.token.collectAsState()
     val map = mainViewModel.backgroundMap.collectAsState()
+
+    val mapPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { mainViewModel.giveMapImageUri(it)}
+    )
     Box(
         modifier = Modifier
             .fillMaxSize(),
 
         ) {
-        Image(
+        if ( mainViewModel.mapImageUri == null ) Image(
             //We use the connectedModifier that was declared inside the TerrainScreen() Composable
             modifier = modifier,
-            contentDescription = "Imported image",
+            contentDescription = "Stock Image",
             painter = painterResource(
                 id = map.value.imageResource
             )
+        )
+        else AsyncImage(
+            model = mainViewModel.mapImageUri,
+            contentDescription = "Image from gallery",
+            modifier = modifier
         )
     }
     Box(
@@ -112,7 +127,7 @@ fun Terrain(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        token.value.forEachIndexed { i, token ->
+        token.value.forEach { token ->
             Icon(
                 painterResource(token.imageResource),
                 token.name ?: "",
@@ -138,6 +153,7 @@ fun Terrain(
             )
         }
             //Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
+        TerrainUI(mainViewModel, mapPickerLauncher)
     }
 }
 
@@ -146,7 +162,8 @@ fun Terrain(
 // on the Terrain
 @Composable
 fun TerrainUI(
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    mapPickerLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>
 ) {
     val mapState = mainViewModel.backgroundMap.collectAsState()
     Box(
@@ -155,7 +172,16 @@ fun TerrainUI(
         contentAlignment = Alignment.BottomEnd
     ){
         Row {
-
+            Button(
+                onClick = {
+                    mapPickerLauncher.launch(
+                        PickVisualMediaRequest( ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                content = {
+                    Text ("Select Map")
+                }
+            )
             Button(
                 onClick = { mainViewModel.createToken()},
                 content = {

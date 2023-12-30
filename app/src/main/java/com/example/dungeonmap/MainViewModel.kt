@@ -1,5 +1,6 @@
 package com.example.dungeonmap
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
@@ -22,7 +23,7 @@ class MainViewModel: ViewModel() {
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
     val token: StateFlow<List<Token>> = _token.asStateFlow()
 
-
+    var mapImageUri: Uri? = null
 
     //Functions to update the BackgroundMap and Token
     fun updateMapOffset(newOffset: Offset) {
@@ -59,12 +60,13 @@ class MainViewModel: ViewModel() {
             }
             //In order for the map to stay centered on the screen when zooming in or out, we need to
             //update the map offset as well
-            _backgroundMap.value = _backgroundMap.value.copy(
-                mapOffset = Offset(
-                    backgroundMap.value.mapOffset.x * scaleChange,
-                    backgroundMap.value.mapOffset.y * scaleChange
+            if (_backgroundMap.value.mapScale < 10F && _backgroundMap.value.mapScale > 1F)
+                _backgroundMap.value = _backgroundMap.value.copy(
+                    mapOffset = Offset(
+                        backgroundMap.value.mapOffset.x * scaleChange,
+                        backgroundMap.value.mapOffset.y * scaleChange
+                    )
                 )
-            )
             //We also need to update the token offset so that it stays in the same position on the map
             if (_backgroundMap.value.mapScale < 10F && _backgroundMap.value.mapScale > 1F)
                 _token.value = _token.value.mapIndexed { i, it ->
@@ -113,16 +115,25 @@ class MainViewModel: ViewModel() {
 
     fun updateTokenSize(sizeChange: Float, uuid: UUID) {
         _token.value = _token.value.mapIndexed { i, it ->
-            it.copy(
-                tokenSize = (token.value[i].tokenSize + (sizeChange * 0.001F)).coerceIn(0.04F, 2F)
-            )
+            if (it.tokenId == uuid)
+                it.copy(
+                    tokenSize = (token.value[i].tokenSize + (sizeChange * 0.001F)).coerceIn(0.04F, 2F)
+                )
+            else it
         }
     }
 
     fun createToken() {
         _token.value += mutableListOf(
-            Token(tokenSize = token.value.last().tokenSize)
+            Token(
+                tokenSize = token.value.last().tokenSize,
+                scale = token.value.last().scale,
+                position = token.value.last().position + Offset(10f, 10f)
+            )
         )
     }
+
+
+    fun giveMapImageUri (uri: Uri? ) { mapImageUri = uri }
 
 }
