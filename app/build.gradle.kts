@@ -29,6 +29,9 @@ android {
             )
         }
     }
+    //adding the "tokens" and "maps" subfolders that are located in the "res/drawable" folder
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8

@@ -15,6 +15,8 @@ const val MAX_ZOOM_IN: Float = 1F
 const val MAX_ZOOM_OUT: Float = 10F
 var defaultTokenSize: Float? = null
 
+
+
 class MainViewModel: ViewModel() {
 
     //Initializing the BackgroundMap and Token as MutableStateFlow objects
@@ -22,6 +24,10 @@ class MainViewModel: ViewModel() {
     private val _token = MutableStateFlow(listOf(Token()))
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
     val token: StateFlow<List<Token>> = _token.asStateFlow()
+
+    val mapsList: List<Pair<Int, String>> = getDrawableResourcesIds("map")
+    val tokensList: List<Pair<Int, String>> = getDrawableResourcesIds("token")
+
 
     var mapImageUri: Uri? = null
 
@@ -136,4 +142,9 @@ class MainViewModel: ViewModel() {
 
     fun giveMapImageUri (uri: Uri? ) { mapImageUri = uri }
 
+    fun updateMapImageResource (resource: Int) {
+        _backgroundMap.value = _backgroundMap.value.copy(
+            imageResource = resource
+        )
+    }
 }
