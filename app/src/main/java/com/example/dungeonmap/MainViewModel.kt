@@ -2,6 +2,7 @@ package com.example.dungeonmap
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
@@ -123,15 +124,16 @@ class MainViewModel: ViewModel() {
         _token.value = _token.value.mapIndexed { i, it ->
             if (it.tokenId == uuid)
                 it.copy(
-                    tokenSize = (token.value[i].tokenSize + (sizeChange * 0.001F)).coerceIn(0.04F, 2F)
+                    tokenSize = (token.value[i].tokenSize + (-sizeChange * 0.001F)).coerceIn(0.04F, 2F)
                 )
             else it
         }
     }
 
-    fun createToken() {
+    fun createToken(drawable: Int? = null) {
         _token.value += mutableListOf(
             Token(
+                imageResource = if (drawable != null) drawable else R.drawable.minotaur_berserker,
                 tokenSize = token.value.last().tokenSize,
                 scale = token.value.last().scale,
                 position = token.value.last().position + Offset(10f, 10f)
@@ -140,11 +142,25 @@ class MainViewModel: ViewModel() {
     }
 
 
-    fun giveMapImageUri (uri: Uri? ) { mapImageUri = uri }
+    fun giveMapImageUri (uri: Uri? ) {
+        mapImageUri = uri
+    }
 
     fun updateMapImageResource (resource: Int) {
         _backgroundMap.value = _backgroundMap.value.copy(
             imageResource = resource
+        )
+    }
+
+    fun setMapPickerState (state: Boolean) {
+        _backgroundMap.value = _backgroundMap.value.copy(
+            isMapPickerVisible = state
+        )
+    }
+
+    fun setTokenPickerState (state: Boolean) {
+        _backgroundMap.value = _backgroundMap.value.copy(
+            isTokenPickerVisible = state
         )
     }
 }

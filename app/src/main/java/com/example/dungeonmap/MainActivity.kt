@@ -8,7 +8,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,19 +27,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -41,6 +52,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 
 
@@ -90,8 +102,9 @@ fun TerrainScreen() {
             connectedModifier,
             mVM
         )
-        mapPickerGrid(mVM)
 
+        MapPickerGrid(mVM)
+        TokenPickerGrid(mVM)
 
     }
 }
@@ -181,16 +194,15 @@ fun TerrainUI(
         Row {
             Button(
                 onClick = {
-                    mapPickerLauncher.launch(
-                        PickVisualMediaRequest( ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    //mapPickerLauncher.launch( PickVisualMediaRequest( ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    mVM.setMapPickerState(true)
                 },
                 content = {
                     Text ("Select Map")
                 }
             )
             Button(
-                onClick = { mVM.createToken()},
+                onClick = { mVM.setTokenPickerState(true) },
                 content = {
                     Text("Add Token")
                 }
@@ -213,49 +225,152 @@ fun TerrainUI(
 
 //This composable creates an animated tab that rises from below the screen, that presents the user with a
 //lazy grid of all the drawable that are returned by getDrawableResourcesIds() function
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun mapPickerGrid( mVM: MainViewModel) {
-    Box(
-        modifier =Modifier
-            .fillMaxSize()
+fun MapPickerGrid( mVM: MainViewModel) {
+    val mapState by mVM.backgroundMap.collectAsState()
 
+    AnimatedVisibility(
+        visible = mapState.isMapPickerVisible,
+        enter = slideInVertically (
+                initialOffsetY = { it },
+                animationSpec = tween(500)
+        )+ fadeIn(animationSpec = tween(500)),
+        exit = slideOutVertically (
+                targetOffsetY = { it },
+                animationSpec = tween(500)
+        )+ fadeOut (animationSpec = tween(500))
     ) {
-        Card(
-            onClick = { /*TODO*/ },
-            modifier = Modifier
-                .offset(y = 30.dp)
-                .fillMaxSize(0.8F)
-                .animateContentSize()
-                .align(Alignment.BottomCenter)
-                .border(10.dp, Color.Black),
+        Box(
+            modifier =Modifier
+                .fillMaxSize()
+                .clickable { mVM.setTokenPickerState(false)  }
+                .offset(y = 40.dp),
+            contentAlignment = Alignment.BottomCenter
+
+        )   {
+                ModalDrawerSheet(
+                    modifier = Modifier
+                        .fillMaxSize(0.9F),
+                    drawerShape = RoundedCornerShape(40.dp),
+
+                    ) {
+                    Surface (
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        shadowElevation = 15.dp,
+                        color = MaterialTheme.colorScheme.primary
 
 
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 300.toDp),
-                content = {
-                    mVM.mapsList.forEach {
-                        item {
-                            Icon(painterResource(it.first),
-                                it.second,
-                                tint = Color.Unspecified,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable {
-                                        mVM.updateMapImageResource(it.first)
+                    ){
+                        LazyVerticalGrid(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(40.dp))
+                                .border(
+                                    10.dp,
+                                    MaterialTheme.colorScheme.background,
+                                    RoundedCornerShape(40.dp)
+                                ),
+                            columns = GridCells.Adaptive(minSize = 300.toDp),
+                            content = {
+                                mVM.mapsList.forEach {
+                                    item {
+                                        Icon(painterResource(it.first),
+                                            it.second,
+                                            tint = Color.Unspecified,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clickable {
+                                                    mVM.updateMapImageResource(it.first)
+                                                    mVM.setMapPickerState(false)
+                                                }
 
+
+                                        )
                                     }
+                                }
+                            }
+                        )
 
-
-                            )
-                        }
                     }
                 }
-            )
+            }
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TokenPickerGrid( mVM: MainViewModel) {
+
+    val mapState by mVM.backgroundMap.collectAsState()
+
+    AnimatedVisibility(
+        visible = mapState.isTokenPickerVisible,
+        enter = slideInVertically (
+            initialOffsetY = { it },
+            animationSpec = tween(500)
+        )+ fadeIn(animationSpec = tween(500)),
+        exit = slideOutVertically (
+            targetOffsetY = { it },
+            animationSpec = tween(500)
+        )+ fadeOut (animationSpec = tween(500))
+    ) {
+
+        Box(
+            modifier =Modifier
+                .fillMaxSize()
+                .clickable { mVM.setMapPickerState(false)  }
+                .offset(y = 40.dp),
+            contentAlignment = Alignment.BottomCenter
+
+        )   {
+            ModalDrawerSheet(
+                modifier = Modifier
+                    .fillMaxSize(0.9F),
+                drawerShape = RoundedCornerShape(40.dp),
+
+                ) {
+                Surface (
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    shadowElevation = 15.dp,
+                    color = MaterialTheme.colorScheme.primary
+
+                ){
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(40.dp))
+                            .border(
+                                10.dp,
+                                MaterialTheme.colorScheme.background,
+                                RoundedCornerShape(40.dp)
+                            ),
+                        columns = GridCells.Adaptive(minSize = 300.toDp)
+                    ) {
+                        mVM.tokensList.forEach {
+                            item {
+                                Icon(painterResource(it.first),
+                                    it.second,
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clickable {
+                                            mVM.createToken( it.first )
+                                            mVM.setTokenPickerState(false)
+                                        }
+                                )
+                            }
+                        }
+                    }
+
+                }
+            }
         }
     }
 }
+
 
 

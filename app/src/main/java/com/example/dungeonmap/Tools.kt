@@ -4,10 +4,10 @@ package com.example.dungeonmap
 //along with their names as Pairs
 fun getDrawableResourcesIds(prefix: String): List<Pair<Int, String>> {
     val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
-    val list: MutableList<Pair<Int, String>> = mutableListOf( Pair(0, ""))
+    val list: MutableList<Pair<Int, String>> = mutableListOf( Pair( 0, "" ))
     list.clear()
     field.forEach {
-        if(prefix in it.name) list.add(Pair ( it.getInt(it), it.name))
+        if(prefix in it.name) list.add( Pair ( it.getInt(it), it.name ))
     }
     return list
 }
