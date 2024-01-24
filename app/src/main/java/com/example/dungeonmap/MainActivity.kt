@@ -48,8 +48,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.dungeonmap.data.Token
@@ -75,8 +78,8 @@ fun DungeonMapApp() {
 
 @Composable
 fun TerrainScreen() {
-
-    val mVM: MainViewModel = viewModel()
+    val viewModelFactory = MainViewModelFactory(LocalContext.current)
+    val mVM = ViewModelProvider()[MainViewModel::class.java]
     val mapState = mVM.backgroundMap.collectAsState()
 
     val connectedModifier  = Modifier
@@ -95,18 +98,23 @@ fun TerrainScreen() {
         .animateContentSize()
 
 
-    Box(
-        modifier = Modifier
-    ) {
-        Terrain(
-            connectedModifier,
-            mVM
-        )
+   Surface(
+       modifier = Modifier.fillMaxSize(),
+       color = MaterialTheme.colorScheme.background
+   ) {
+        Box(
+            modifier = Modifier
+        ) {
+            Terrain(
+                connectedModifier,
+                mVM
+            )
 
-        MapPickerGrid(mVM)
-        TokenPickerGrid(mVM)
+            MapPickerGrid(mVM)
+            TokenPickerGrid(mVM)
 
-    }
+        }
+   }
 }
 
 //This is basically the main surface of the app
@@ -214,8 +222,18 @@ fun TerrainUI(
                     Icon(
                         if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
                         contentDescription = "Locked scale icon",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
+                }
+            )
+
+            Button(
+                onClick = {
+                    //mapPickerLauncher.launch( PickVisualMediaRequest( ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    mVM.setMapPickerState(true)
+                },
+                content = {
+                    Text ("load imgs")
                 }
             )
 
@@ -243,16 +261,16 @@ fun MapPickerGrid( mVM: MainViewModel) {
         )+ fadeOut (animationSpec = tween(500))
     ) {
         Box(
-            modifier =Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .clickable { mVM.setTokenPickerState(false)  }
-                .offset(y = 40.dp),
+                .clickable { mVM.setMapPickerState(false) },
             contentAlignment = Alignment.BottomCenter
 
         )   {
                 ModalDrawerSheet(
                     modifier = Modifier
-                        .fillMaxSize(0.9F),
+                        .fillMaxSize(0.9F)
+                        .offset(y = 40.dp),
                     drawerShape = RoundedCornerShape(40.dp),
 
                     ) {
@@ -319,16 +337,16 @@ fun TokenPickerGrid( mVM: MainViewModel) {
     ) {
 
         Box(
-            modifier =Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .clickable { mVM.setMapPickerState(false)  }
-                .offset(y = 40.dp),
+                .clickable { mVM.setTokenPickerState(false) },
             contentAlignment = Alignment.BottomCenter
 
         )   {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .fillMaxSize(0.9F),
+                    .fillMaxSize(0.9F)
+                    .offset(y = 40.dp),
                 drawerShape = RoundedCornerShape(40.dp),
 
                 ) {
@@ -358,7 +376,7 @@ fun TokenPickerGrid( mVM: MainViewModel) {
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clickable {
-                                            mVM.createToken( it.first )
+                                            mVM.createToken(it.first)
                                             mVM.setTokenPickerState(false)
                                         }
                                 )

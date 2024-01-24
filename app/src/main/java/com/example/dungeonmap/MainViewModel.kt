@@ -1,24 +1,29 @@
 package com.example.dungeonmap
 
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Token
+import com.example.dungeonmap.storage.ImageHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.UUID
 
-const val MAX_ZOOM_IN: Float = 1F
-const val MAX_ZOOM_OUT: Float = 10F
-var defaultTokenSize: Float? = null
+const val MIN_SCALE: Float = 1F
+const val MAX_SCALE: Float = 10F
 
 
 
-class MainViewModel: ViewModel() {
+class MainViewModel (private val context: Context): ViewModel() {
+
 
     //Initializing the BackgroundMap and Token as MutableStateFlow objects
     private val _backgroundMap = MutableStateFlow(BackgroundMap())
@@ -29,10 +34,30 @@ class MainViewModel: ViewModel() {
     val mapsList: List<Pair<Int, String>> = getDrawableResourcesIds("map")
     val tokensList: List<Pair<Int, String>> = getDrawableResourcesIds("token")
 
-
     var mapImageUri: Uri? = null
 
-    //Functions to update the BackgroundMap and Token
+
+    val imageHandler = ImageHandler(context)
+
+    val saveImagesToInternal = getDrawableResourcesIds("map").also {
+        it.forEach {
+            viewModelScope.launch {
+                imageHandler.saveImageToInternalStorage(
+                    it.second,
+                    BitmapFactory.decodeResource(context.resources, it.first)
+                )
+            }
+        }
+    }.also {
+        //scan the internal storage for images and Log.d all their uris
+        it.forEach {
+            viewModelScope.launch {
+                Log.d(MainActivity.LOG_TAG, it.second)
+            }
+        }
+    }
+
+    //Functions to update the BackgroundMap and Token position
     fun updateMapOffset(newOffset: Offset) {
         _backgroundMap.value = _backgroundMap.value.copy(
             mapOffset = Offset(
@@ -56,18 +81,18 @@ class MainViewModel: ViewModel() {
         if (scaleChange != 0F && !_backgroundMap.value.isScaleLocked) {
             _backgroundMap.value = _backgroundMap.value.copy(
                 mapScale = scaleChange * backgroundMap.value.mapScale.coerceIn(
-                    MAX_ZOOM_IN,
-                    MAX_ZOOM_OUT
+                    MIN_SCALE,
+                    MAX_SCALE
                 )
             )
             _token.value = _token.value.mapIndexed { i, it ->
                 it.copy(
-                    scale = scaleChange * token.value[i].scale.coerceIn(MAX_ZOOM_IN, MAX_ZOOM_OUT)
+                    scale = scaleChange * token.value[i].scale.coerceIn(MIN_SCALE, MAX_SCALE)
                 )
             }
             //In order for the map to stay centered on the screen when zooming in or out, we need to
             //update the map offset as well
-            if (_backgroundMap.value.mapScale < 10F && _backgroundMap.value.mapScale > 1F)
+            if (_backgroundMap.value.mapScale < MAX_SCALE && _backgroundMap.value.mapScale > MIN_SCALE)
                 _backgroundMap.value = _backgroundMap.value.copy(
                     mapOffset = Offset(
                         backgroundMap.value.mapOffset.x * scaleChange,
@@ -75,7 +100,7 @@ class MainViewModel: ViewModel() {
                     )
                 )
             //We also need to update the token offset so that it stays in the same position on the map
-            if (_backgroundMap.value.mapScale < 10F && _backgroundMap.value.mapScale > 1F)
+            if (_backgroundMap.value.mapScale < MAX_SCALE && _backgroundMap.value.mapScale > MIN_SCALE)
                 _token.value = _token.value.mapIndexed { i, it ->
                     it.copy(
                         position = Offset(
