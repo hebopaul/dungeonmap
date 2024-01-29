@@ -1,20 +1,16 @@
 package com.example.dungeonmap
 
-import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Token
-import com.example.dungeonmap.storage.ImageHandler
+import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 
 const val MIN_SCALE: Float = 1F
@@ -22,40 +18,21 @@ const val MAX_SCALE: Float = 10F
 
 
 
-class MainViewModel (private val context: Context): ViewModel() {
+class MainViewModel : ViewModel() {
 
 
     //Initializing the BackgroundMap and Token as MutableStateFlow objects
     private val _backgroundMap = MutableStateFlow(BackgroundMap())
-    private val _token = MutableStateFlow(listOf(Token()))
+    private val _activeTokenList = MutableStateFlow(listOf(Token()))
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
-    val token: StateFlow<List<Token>> = _token.asStateFlow()
+    val activeTokenList: StateFlow<List<Token>> = _activeTokenList.asStateFlow()
 
-    val mapsList: List<Pair<Int, String>> = getDrawableResourcesIds("map")
-    val tokensList: List<Pair<Int, String>> = getDrawableResourcesIds("token")
+    val stockMapsList: List<Pair<Int, String>> = getDrawableResourcesIds("map")
+    val stockTokensList: List<Pair<Int, String>> = getDrawableResourcesIds("token")
 
     var mapImageUri: Uri? = null
 
 
-    val imageHandler = ImageHandler(context)
-
-    val saveImagesToInternal = getDrawableResourcesIds("map").also {
-        it.forEach {
-            viewModelScope.launch {
-                imageHandler.saveImageToInternalStorage(
-                    it.second,
-                    BitmapFactory.decodeResource(context.resources, it.first)
-                )
-            }
-        }
-    }.also {
-        //scan the internal storage for images and Log.d all their uris
-        it.forEach {
-            viewModelScope.launch {
-                Log.d(MainActivity.LOG_TAG, it.second)
-            }
-        }
-    }
 
     //Functions to update the BackgroundMap and Token position
     fun updateMapOffset(newOffset: Offset) {
@@ -65,11 +42,11 @@ class MainViewModel (private val context: Context): ViewModel() {
                 backgroundMap.value.mapOffset.y + newOffset.y
             )
         )
-        _token.value = _token.value.mapIndexed { i, it ->
+        _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
             it.copy(
                 position = Offset(
-                    token.value[i].position.x + newOffset.x,
-                    token.value[i].position.y + newOffset.y
+                    activeTokenList.value[i].position.x + newOffset.x,
+                    activeTokenList.value[i].position.y + newOffset.y
                 )
             )
         }
@@ -85,9 +62,9 @@ class MainViewModel (private val context: Context): ViewModel() {
                     MAX_SCALE
                 )
             )
-            _token.value = _token.value.mapIndexed { i, it ->
+            _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
                 it.copy(
-                    scale = scaleChange * token.value[i].scale.coerceIn(MIN_SCALE, MAX_SCALE)
+                    scale = scaleChange * activeTokenList.value[i].scale.coerceIn(MIN_SCALE, MAX_SCALE)
                 )
             }
             //In order for the map to stay centered on the screen when zooming in or out, we need to
@@ -101,11 +78,11 @@ class MainViewModel (private val context: Context): ViewModel() {
                 )
             //We also need to update the token offset so that it stays in the same position on the map
             if (_backgroundMap.value.mapScale < MAX_SCALE && _backgroundMap.value.mapScale > MIN_SCALE)
-                _token.value = _token.value.mapIndexed { i, it ->
+                _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
                     it.copy(
                         position = Offset(
-                            token.value[i].position.x * scaleChange,
-                            token.value[i].position.y * scaleChange
+                            activeTokenList.value[i].position.x * scaleChange,
+                            activeTokenList.value[i].position.y * scaleChange
                         )
                     )
                 }
@@ -116,22 +93,22 @@ class MainViewModel (private val context: Context): ViewModel() {
             "updateMapScale called",
             "map offset = ${backgroundMap.value.mapOffset}" +
             "map scale = ${backgroundMap.value.mapScale}" +
-            "token offset = ${token.value[0].position}" +
-            "token scale = ${token.value[0].scale}"
+            "token offset = ${activeTokenList.value[0].position}" +
+            "token scale = ${activeTokenList.value[0].scale}"
         )
     }
 
     //This function is called when the user drags the token
     fun updateTokenOffset(newPosition: Offset, uuid: UUID) {
 
-        _token.value = _token.value.mapIndexed { i, it ->
+        _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
             if (it.tokenId == uuid)
                 it.copy(
                     position = Offset(
-                        _token.value[i].position.x + newPosition.x *
-                                backgroundMap.value.mapScale * _token.value[i].tokenSize,
-                        _token.value[i].position.y + newPosition.y *
-                                backgroundMap.value.mapScale * _token.value[i].tokenSize
+                        _activeTokenList.value[i].position.x + newPosition.x *
+                                backgroundMap.value.mapScale * _activeTokenList.value[i].tokenSize,
+                        _activeTokenList.value[i].position.y + newPosition.y *
+                                backgroundMap.value.mapScale * _activeTokenList.value[i].tokenSize
                      )
                 )
             else it
@@ -146,22 +123,22 @@ class MainViewModel (private val context: Context): ViewModel() {
     }
 
     fun updateTokenSize(sizeChange: Float, uuid: UUID) {
-        _token.value = _token.value.mapIndexed { i, it ->
+        _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
             if (it.tokenId == uuid)
                 it.copy(
-                    tokenSize = (token.value[i].tokenSize + (-sizeChange * 0.001F)).coerceIn(0.04F, 2F)
+                    tokenSize = (activeTokenList.value[i].tokenSize + (-sizeChange * 0.001F)).coerceIn(0.04F, 2F)
                 )
             else it
         }
     }
 
     fun createToken(drawable: Int? = null) {
-        _token.value += mutableListOf(
+        _activeTokenList.value += mutableListOf(
             Token(
-                imageResource = if (drawable != null) drawable else R.drawable.minotaur_berserker,
-                tokenSize = token.value.last().tokenSize,
-                scale = token.value.last().scale,
-                position = token.value.last().position + Offset(10f, 10f)
+                imageResource = drawable ?: R.drawable.minotaur_berserker,
+                tokenSize = activeTokenList.value.last().tokenSize,
+                scale = activeTokenList.value.last().scale,
+                position = activeTokenList.value.last().position + Offset(10f, 10f)
             )
         )
     }
@@ -169,6 +146,12 @@ class MainViewModel (private val context: Context): ViewModel() {
 
     fun giveMapImageUri (uri: Uri? ) {
         mapImageUri = uri
+        val file = File(uri.toString())
+
+       /* imageHandler.saveImageToInternalStorage(
+            file.name,
+            BitmapFactory.decodeFile(file.absolutePath)
+        )*/
     }
 
     fun updateMapImageResource (resource: Int) {

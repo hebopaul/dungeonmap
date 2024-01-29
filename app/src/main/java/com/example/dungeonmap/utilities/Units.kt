@@ -1,4 +1,4 @@
-package com.example.dungeonmap
+package com.example.dungeonmap.utilities
 
 
 import androidx.compose.runtime.Composable
