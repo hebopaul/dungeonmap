@@ -54,7 +54,6 @@ android {
 
 dependencies {
 
-    implementation ("androidx.compose.material:material-icons-extended")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
@@ -72,6 +71,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
+    //coil
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //extra icons
+    implementation ("androidx.compose.material:material-icons-extended")
 
 }

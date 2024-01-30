@@ -1,6 +1,10 @@
 package com.example.dungeonmap.composables
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,21 +13,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.MainViewModelFactory
+import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.toDp
 
 @Composable
-fun TerrainScreen() {
-    val viewModelFactory = MainViewModelFactory()
-    val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
+fun TerrainScreen(mVM: MainViewModel) {
 
-
-    val mapState = mVM.backgroundMap.collectAsState()
+    val mapState by mVM.backgroundMap.collectAsState()
 
     val myModifier  = Modifier
         .fillMaxSize()
@@ -34,10 +37,10 @@ fun TerrainScreen() {
             }
         }
         .offset(
-            x = mapState.value.mapOffset.x.toDp,
-            y = mapState.value.mapOffset.y.toDp
+            x = mapState.mapOffset.x.toDp,
+            y = mapState.mapOffset.y.toDp
         )
-        .scale(mapState.value.mapScale)
+        .scale(mapState.mapScale)
         .animateContentSize()
 
 
@@ -52,9 +55,18 @@ fun TerrainScreen() {
                 myModifier,
                 mVM
             )
-
-            MapPickerDrawer(mVM)
-            TokenPickerDrawer(mVM)
+            //MapPickerDrawer(mVM)
+            AnimatedVisibility(
+                visible = mapState.isPickerVisible,
+                enter = slideInVertically (
+                    initialOffsetY = { it },
+                    animationSpec = tween(500)
+                ),
+                exit = slideOutVertically (
+                    targetOffsetY = { it },
+                    animationSpec = tween(500)
+                )
+            ){ PickerDrawer(mVM) }
 
         }
     }

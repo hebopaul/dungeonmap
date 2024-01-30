@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.imageLoader
 import com.example.dungeonmap.composables.TerrainScreen
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
+import com.example.dungeonmap.utilities.getDrawableResourcesIds
 
 
 class MainActivity : ComponentActivity() {
@@ -14,16 +17,25 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DungeonMapTheme {
-                DungeonMapApp()
+                val viewModelFactory = MainViewModelFactory()
+                val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
+
+                mVM.stockTokensList = getDrawableResourcesIds("token")
+                mVM.stockMapsList = getDrawableResourcesIds("map")
+
+                DungeonMapApp(mVM)
+
             }
         }
     }
+
+
 }
 
 
 @Composable
-fun DungeonMapApp() {
-    TerrainScreen()
+fun DungeonMapApp(mVM: MainViewModel) {
+    TerrainScreen(mVM)
 }
 
 

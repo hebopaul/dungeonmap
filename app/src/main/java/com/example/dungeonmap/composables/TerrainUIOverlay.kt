@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,22 +35,22 @@ fun TerrainUIOverlay(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomEnd
     ){
+        val isPickerVisible = false
+
         Row {
-            Button(
+
+            IconButton(
                 onClick = {
-                    mVM.setMapPickerState(true)
+                    mVM.setPickerVisible(true)
                 },
                 content = {
-                    Text ("Select Map")
+                    Icon(
+                        imageVector = Icons.Outlined.AddCircleOutline,
+                        contentDescription = "add item",
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
                 }
             )
-            Button(
-                onClick = { mVM.setTokenPickerState(true) },
-                content = {
-                    Text("Add Token")
-                }
-            )
-
             IconButton(
                 onClick = { mVM.lockedScaleIconClicked() },
                 content = {

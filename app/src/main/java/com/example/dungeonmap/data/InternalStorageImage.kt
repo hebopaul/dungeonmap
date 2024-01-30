@@ -1,4 +1,4 @@
-package com.example.dungeonmap.storage
+package com.example.dungeonmap.data
 
 import android.graphics.Bitmap
 

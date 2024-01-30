@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
+import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
-import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +27,8 @@ class MainViewModel : ViewModel() {
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
     val activeTokenList: StateFlow<List<Token>> = _activeTokenList.asStateFlow()
 
-    val stockMapsList: List<Pair<Int, String>> = getDrawableResourcesIds("map")
-    val stockTokensList: List<Pair<Int, String>> = getDrawableResourcesIds("token")
+    lateinit var stockMapsList: List<StockImage?>
+    lateinit var stockTokensList: List<StockImage?>
 
     var mapImageUri: Uri? = null
 
@@ -160,15 +160,10 @@ class MainViewModel : ViewModel() {
         )
     }
 
-    fun setMapPickerState (state: Boolean) {
+    fun setPickerVisible (state: Boolean) {
         _backgroundMap.value = _backgroundMap.value.copy(
-            isMapPickerVisible = state
+            isPickerVisible = state
         )
     }
 
-    fun setTokenPickerState (state: Boolean) {
-        _backgroundMap.value = _backgroundMap.value.copy(
-            isTokenPickerVisible = state
-        )
-    }
 }
