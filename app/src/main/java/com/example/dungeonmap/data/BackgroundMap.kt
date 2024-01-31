@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import com.example.dungeonmap.R
 
 data class BackgroundMap (
-    var imageResource: Int = R.drawable.m03_tombofhorrors_300,
+    var imageResource: Int = R.drawable.map_tombofhorrors,
     var mapOffset: Offset = Offset(0F, 0F),
     var mapScale: Float = 1F,
     var isScaleLocked: Boolean = false,

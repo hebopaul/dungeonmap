@@ -5,13 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.imageLoader
 import com.example.dungeonmap.composables.TerrainScreen
+import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        lateinit var fileHandler: FileHandler
+
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -23,10 +28,13 @@ class MainActivity : ComponentActivity() {
                 mVM.stockTokensList = getDrawableResourcesIds("token")
                 mVM.stockMapsList = getDrawableResourcesIds("map")
 
+                fileHandler = FileHandler(this@MainActivity)
+
                 DungeonMapApp(mVM)
 
             }
         }
+
     }
 
 

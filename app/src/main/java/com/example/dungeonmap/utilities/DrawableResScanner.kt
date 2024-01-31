@@ -1,13 +1,7 @@
 package com.example.dungeonmap.utilities
 
 
-import android.content.Context
-import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import com.example.dungeonmap.data.StockImage
 
@@ -21,10 +15,16 @@ fun getDrawableResourcesIds(prefix: String): List<StockImage> {
         if(prefix in it.name) list.add(
             StockImage (
                 id = it.getInt(it),
-                name = it.name,
+                name = beautifyResName(it.name),
                 image = painterResource( it.getInt(it) )
             )
         )
     }
     return list
 }
+
+fun beautifyResName(name: String): String =
+    name
+        .split("_")
+        .filter { it.isNotEmpty() && it !in listOf("map", "token") }
+        .joinToString(" ") { it.replaceFirstChar { it.uppercase() } }

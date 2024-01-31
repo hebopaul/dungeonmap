@@ -2,8 +2,11 @@ package com.example.dungeonmap.storage
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 class FileHandler(
@@ -36,9 +39,9 @@ class FileHandler(
     }
 
 
-    fun saveTokenToInternal(bmp: Bitmap, fileName: String) :Boolean {
+    private fun saveTokenToInternal(bmp: Bitmap, fileName: String) :Boolean {
         return try {
-            context.openFileOutput("tokens/$fileName.jpg", Context.MODE_PRIVATE).use { stream ->
+            context.openFileOutput("tokens/$fileName.png", Context.MODE_PRIVATE).use { stream ->
                 if(!bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
                     throw IOException("Could not save image")
                 }
@@ -51,6 +54,17 @@ class FileHandler(
         }
     }
 
+
+    private fun saveMapToInternal(bmp: Bitmap, fileName: String) {
+        val file = File(context.filesDir, "maps/$fileName.jpg")
+        FileOutputStream(file).use {
+            if (!bmp.compress(Bitmap.CompressFormat.JPEG, 100, it)) {
+                throw IOException("Could not save image")
+            }
+
+        }
+    }
+
     private fun deleteImageFromInternalStorage(fileUri: String): Boolean {
         return try {
             with(context) {
@@ -60,6 +74,26 @@ class FileHandler(
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    fun importTokenFromDevice(imageUri: Uri?) {
+        if (imageUri != null) {
+            val bitmap: Bitmap =
+                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            val fileName: String = imageUri.lastPathSegment.toString()
+            saveTokenToInternal(bitmap, fileName)
+
+        }
+    }
+
+    fun importMapFromDevice(imageUri: Uri?) {
+        if (imageUri != null) {
+            val bitmap: Bitmap =
+                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            val fileName: String = imageUri.lastPathSegment.toString()
+            saveMapToInternal(bitmap, fileName)
+
         }
     }
 

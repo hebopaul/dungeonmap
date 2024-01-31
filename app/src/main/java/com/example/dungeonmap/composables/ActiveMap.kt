@@ -1,7 +1,5 @@
 package com.example.dungeonmap.composables
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,10 +21,7 @@ fun ActiveMap(
 
     val map = mVM.backgroundMap.collectAsState()
 
-    val mapPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { mVM.giveMapImageUri(it)}
-    )
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -57,6 +52,6 @@ fun ActiveMap(
 
 
     //Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
-    TerrainUIOverlay(mVM, mapPickerLauncher)
+    TerrainUIOverlay(mVM)
 }
 
