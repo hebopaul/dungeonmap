@@ -13,10 +13,7 @@ import com.example.dungeonmap.utilities.getDrawableResourcesIds
 
 class MainActivity : ComponentActivity() {
 
-    companion object {
-        lateinit var fileHandler: FileHandler
 
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,12 +22,17 @@ class MainActivity : ComponentActivity() {
                 val viewModelFactory = MainViewModelFactory()
                 val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
 
+                val fileHandler = FileHandler(this@MainActivity)
+
                 mVM.stockTokensList = getDrawableResourcesIds("token")
                 mVM.stockMapsList = getDrawableResourcesIds("map")
 
-                fileHandler = FileHandler(this@MainActivity)
+                mVM.userAddedTokensList = fileHandler.getInternalTokenList()
+                mVM.userAddedMapsList = fileHandler.getInternalMapList()
 
-                DungeonMapApp(mVM)
+
+
+                DungeonMapApp(mVM, fileHandler)
 
             }
         }
@@ -42,8 +44,8 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun DungeonMapApp(mVM: MainViewModel) {
-    TerrainScreen(mVM)
+fun DungeonMapApp(mVM: MainViewModel, fileHandler: FileHandler) {
+    TerrainScreen(mVM, fileHandler)
 }
 
 

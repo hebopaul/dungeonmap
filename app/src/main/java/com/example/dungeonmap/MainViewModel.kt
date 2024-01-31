@@ -5,12 +5,12 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
+import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 import java.util.UUID
 
 const val MIN_SCALE: Float = 1F
@@ -21,6 +21,8 @@ const val MAX_SCALE: Float = 10F
 class MainViewModel : ViewModel() {
 
 
+
+
     //Initializing the BackgroundMap and Token as MutableStateFlow objects
     private val _backgroundMap = MutableStateFlow(BackgroundMap())
     private val _activeTokenList = MutableStateFlow(listOf(Token()))
@@ -29,6 +31,8 @@ class MainViewModel : ViewModel() {
 
     lateinit var stockMapsList: List<StockImage?>
     lateinit var stockTokensList: List<StockImage?>
+    lateinit var userAddedMapsList: List<InternalStorageImage>
+    lateinit var userAddedTokensList: List<InternalStorageImage>
 
     var mapImageUri: Uri? = null
 
@@ -144,20 +148,15 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun giveMapImageUri (uri: Uri? ) {
+    fun updateMapImageUri (uri: Uri? ) {
         mapImageUri = uri
-        val file = File(uri.toString())
-
-       /* imageHandler.saveImageToInternalStorage(
-            file.name,
-            BitmapFactory.decodeFile(file.absolutePath)
-        )*/
     }
 
     fun updateMapImageResource (resource: Int) {
         _backgroundMap.value = _backgroundMap.value.copy(
             imageResource = resource
         )
+        mapImageUri = null
     }
 
     fun setPickerVisible (state: Boolean) {

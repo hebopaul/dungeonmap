@@ -2,7 +2,14 @@
 
 package com.example.dungeonmap.composables
 
+import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.RunCircle
@@ -39,14 +46,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.dungeonmap.MainViewModel
+import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.toDp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PickerDrawer(mVM: MainViewModel) {
+fun PickerDrawer(mVM: MainViewModel, fileHandler: FileHandler) {
     val tabItems = listOf(
         TabItem(
             title = "Maps",
@@ -101,8 +111,8 @@ fun PickerDrawer(mVM: MainViewModel) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     when (pagerIndex) {
-                        0 -> MapPickerTab(mVM)
-                        1 -> TokenPickerTab(mVM)
+                        0 -> MapPickerTab(mVM, fileHandler)
+                        1 -> TokenPickerTab(mVM, fileHandler)
                     }
                 }
             }
@@ -124,51 +134,81 @@ fun CollapsibleContent(
 ) {
     var isExpanded by remember { mutableStateOf(true)}
 
-    Column(
+
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-
+            .fillMaxWidth()
+            .height(90.toDp),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(90.toDp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            IconButton(
+        IconButton(
+            modifier = Modifier
+                .fillMaxHeight(),
+            onClick = {isExpanded = !isExpanded}
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ExpandMore,
+                contentDescription = "Expand",
                 modifier = Modifier
-                    .fillMaxHeight(),
-                onClick = {isExpanded = !isExpanded}
-            ) {
-                Icon(
-                    imageVector = if (isExpanded) Icons.Filled.ExpandMore
-                                    else Icons.Filled.ExpandLess,
-                    contentDescription = "Expand"
-                )
-            }
-            Text(header)
-            Divider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.toDp),
-                color = MaterialTheme.colorScheme.primary
+                    .rotate(
+                        animateFloatAsState(
+                            targetValue = if (isExpanded) 0F else -90F,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioHighBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+
+
+                        ).value
+                    )
             )
         }
-        AnimatedVisibility(
-            visible = isExpanded,
+        Text(header)
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.toDp),
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+    AnimatedVisibility(
+        visible = isExpanded,
+    ) {
+        content()
+    }
+}
+
+
+@Composable
+fun ImportItemIcon(pickerLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>?) {
+   Box(
+       modifier = Modifier
+           .fillMaxWidth()
+           .fillMaxHeight(0.1F),
+       contentAlignment = Alignment.Center
+
+   ) {
+        IconButton(
+            modifier = Modifier
+                .scale(1.7F),
+            onClick = {
+                pickerLauncher?.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            }
         ) {
-            content()
+            Icon(
+                imageVector = Icons.Filled.AddCircle,
+                contentDescription = "Import",
+                tint = MaterialTheme.colorScheme.secondary
+            )
         }
     }
 }
 
-@Preview
-@Composable
-fun ShowMeUBits() {
-    PickerDrawer(MainViewModel())
-}
+
 
 @Preview
 @Composable

@@ -2,9 +2,11 @@ package com.example.dungeonmap.storage
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import com.example.dungeonmap.data.InternalStorageImage
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -22,35 +24,46 @@ class FileHandler(
             File(context.filesDir, "maps").mkdirs()
     }
 
-    fun getInternalMapList(): List<File> {
+    fun getInternalMapList(): MutableList<InternalStorageImage> {
         val files = File(context.filesDir, "maps").listFiles()
+        var out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
             Log.d("File Read:", it.absolutePath.toString())
+            out.add(
+                InternalStorageImage(
+                    name = it.name.toString(),
+                    uri = it.absolutePath.toString(),
+                    bmp = BitmapFactory.decodeFile(it.absolutePath.toString())
+                )
+            )
         }
-        return files?.toList()?: listOf()
+        return out
     }
 
-    fun getInternalTokenList(): List<File> {
+    fun getInternalTokenList(): MutableList<InternalStorageImage> {
         val files = File(context.filesDir, "tokens").listFiles()
+        var out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
             Log.d("File Read:", it.absolutePath.toString())
+            out.add(
+                InternalStorageImage(
+                    name = it.name.toString(),
+                    uri = it.absolutePath.toString(),
+                    bmp = BitmapFactory.decodeFile(it.absolutePath.toString())
+                )
+            )
         }
-        return files?.toList()?: listOf()
+        return out
     }
 
 
-    private fun saveTokenToInternal(bmp: Bitmap, fileName: String) :Boolean {
-        return try {
-            context.openFileOutput("tokens/$fileName.png", Context.MODE_PRIVATE).use { stream ->
-                if(!bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
-                    throw IOException("Could not save image")
-                }
-                true
+    private fun saveTokenToInternal(bmp: Bitmap, fileName: String) {
+        val file = File(context.filesDir, "tokens/$fileName.jpg")
+        FileOutputStream(file).use {
+            if (!bmp.compress(Bitmap.CompressFormat.JPEG, 100, it)) {
+                throw IOException("Could not save image")
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
 
-            false
         }
     }
 

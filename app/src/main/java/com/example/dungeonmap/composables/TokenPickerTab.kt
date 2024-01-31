@@ -1,9 +1,6 @@
 package com.example.dungeonmap.composables
 
-import android.net.Uri
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,30 +14,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dungeonmap.MainActivity.Companion.fileHandler
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.StockImage
+import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.toDp
 
 
 @Composable
 fun TokenPickerTab(
-    mVM: MainViewModel
+    mVM: MainViewModel,
+    fileHandler: FileHandler
 ) {
 
     val tokenPickerLauncher = rememberLauncherForActivityResult(
@@ -54,9 +47,21 @@ fun TokenPickerTab(
         color = MaterialTheme.colorScheme.background
 
     ) {
-        Column{
-            CollapsibleContent(header = "Stock") {
-                LazyTokenList(mVM, tokenPickerLauncher)
+        LazyColumn{
+            item {
+                CollapsibleContent(header = "Stock") {
+                    TokenList(mVM)
+                }
+            }
+            item {
+                CollapsibleContent(header = "User Added") {
+                    TokenList(mVM)
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(100.toDp))
+                ImportItemIcon(pickerLauncher = tokenPickerLauncher)
+                Spacer(modifier = Modifier.height(100.toDp))
             }
 
         }
@@ -65,24 +70,19 @@ fun TokenPickerTab(
 }
 
 @Composable
-fun LazyTokenList(
-    mVM: MainViewModel,
-    tokenPickerLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>
+fun TokenList(
+    mVM: MainViewModel
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 20.toDp),
     ) {
-        mVM.stockTokensList.forEachIndexed { index, token ->
-            item {
-                TokenRowItem(
-                    mVM,
-                    tokenPickerLauncher,
-                    index,
-                    token
-                )
-            }
+        mVM.stockTokensList.forEach { token ->
+
+            TokenRowItem(mVM, token)
+
+
         }
     }
 }
@@ -90,69 +90,38 @@ fun LazyTokenList(
 @Composable
 fun TokenRowItem(
     mVM: MainViewModel,
-    tokenPickerLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
-    index: Int,
     token: StockImage?
 ) {
-    Surface(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(320.toDp)
-            .padding(vertical = 6.toDp),
-        shadowElevation = 3.dp,
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.toDp, vertical = 10.toDp)
-                .clickable {
-                    mVM.updateMapImageResource(token!!.id)
-                    mVM.setPickerVisible(false)
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = if (index !== mVM.stockTokensList.size - 1)
-                Arrangement.Start
-            else Arrangement.Center
-        ) {
-            if (index !== mVM.stockTokensList.size - 1) {
-                Icon(
-                    painter = token!!.image,
-                    contentDescription = token.name,
-                    tint = Color.Unspecified,
-                    modifier = Modifier
-                        .fillMaxHeight(0.97F)
-                        .padding(start = 15.toDp)
-                )
-                Spacer(Modifier.width(30.toDp))
+            .padding(horizontal = 20.toDp, vertical = 10.toDp)
+            .clickable {
+                mVM.updateMapImageResource(token!!.id)
+                mVM.setPickerVisible(false)
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
 
-                Text(
-                    text = token.name,
-                    fontSize = 20.sp,
-                    fontFamily = arsenalFamily
-                )
-            } else {
-                IconButton(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .scale(1.7F),
-                    onClick = {
-                        tokenPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AddCircle,
-                        contentDescription = "Import",
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-        }
+        ){
+
+        Icon(
+            painter = token!!.image,
+            contentDescription = token.name,
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .fillMaxHeight(0.97F)
+                .padding(start = 15.toDp)
+        )
+        Spacer(Modifier.width(30.toDp))
+
+        Text(
+            text = token.name ,
+            fontSize = 20.sp,
+            fontFamily = arsenalFamily
+        )
 
     }
-
 }
 
 
