@@ -1,9 +1,9 @@
 package com.example.dungeonmap.data
 
-import android.graphics.Bitmap
+import androidx.compose.ui.graphics.painter.Painter
 
 data class InternalStorageImage(
     val name: String,
-    val bmp: Bitmap,
+    val painter: Painter,
     val uri: String
 )

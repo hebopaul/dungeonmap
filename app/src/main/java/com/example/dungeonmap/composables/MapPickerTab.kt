@@ -3,6 +3,7 @@ package com.example.dungeonmap.composables
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,10 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
@@ -43,7 +46,11 @@ fun MapPickerTab(
 
     val mapPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { fileHandler.importTokenFromDevice(it)}
+        onResult = {
+            fileHandler.importMapFromDevice(it)
+            mVM.triggerUserMapList()
+        }
+
     )
 
 
@@ -65,9 +72,9 @@ fun MapPickerTab(
                     MapList(mVM)
                 }
             }
-           item {
+           item(key = FileHandler.internalStorageMapList) {
                 CollapsibleContent(header = "User Added") {
-                    MapList(mVM, true)
+                    MapList(mVM, fileHandler)
                 }
             }
            item {
@@ -83,7 +90,7 @@ fun MapPickerTab(
 
 @Composable
 fun MapList(
-    mVM: MainViewModel,
+    mVM: MainViewModel
 ) {
     Column(
         modifier = Modifier
@@ -107,13 +114,13 @@ fun MapList(
 @Composable
 fun MapList(
     mVM: MainViewModel,
-    isUserAdded: Boolean = true
+    fileHandler: FileHandler
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
-    ){
-        mVM.userAddedMapsList.forEach{ map ->
+    ) {
+        FileHandler.internalStorageMapList.forEach { map ->
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -121,12 +128,13 @@ fun MapList(
                     .padding(vertical = 6.toDp),
                 shadowElevation = 3.dp,
                 color = MaterialTheme.colorScheme.background
-            ){
-                MapRowItem(mVM, map, isUserAdded )
+            ) {
+                MapRowItem(mVM, map, fileHandler)
             }
         }
     }
 }
+
 
 
 @Composable
@@ -143,7 +151,7 @@ fun MapRowItem(
                 mVM.setPickerVisible(false)
             },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
+        horizontalArrangement = Arrangement.SpaceEvenly,
 
     ){
 
@@ -162,7 +170,6 @@ fun MapRowItem(
             fontSize = 20.sp,
             fontFamily = arsenalFamily
         )
-
     }
 }
 
@@ -170,7 +177,7 @@ fun MapRowItem(
 fun MapRowItem(
     mVM: MainViewModel,
     map: InternalStorageImage?,
-    isUserAdded: Boolean = true
+    fileHandler: FileHandler
 ) {
     Row(
         modifier = Modifier
@@ -181,12 +188,13 @@ fun MapRowItem(
                 mVM.setPickerVisible(false)
             },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
+        horizontalArrangement = Arrangement.SpaceBetween,
 
         ){
 
-        AsyncImage(
-            model = map!!.bmp,
+
+        Image(
+            painter = map!!.painter,
             contentDescription = map.name,
             modifier = Modifier
                 .fillMaxHeight(0.97F)
@@ -200,5 +208,14 @@ fun MapRowItem(
             fontFamily = arsenalFamily
         )
 
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = "Delete file",
+            modifier = Modifier
+                .scale(1.5f)
+                .clickable {
+                    fileHandler.deleteImageFromInternalStorage(map.uri)
+                }
+        )
     }
 }

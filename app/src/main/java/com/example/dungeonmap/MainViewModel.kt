@@ -2,6 +2,9 @@ package com.example.dungeonmap
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
@@ -33,6 +36,9 @@ class MainViewModel : ViewModel() {
     lateinit var stockTokensList: List<StockImage?>
     lateinit var userAddedMapsList: List<InternalStorageImage>
     lateinit var userAddedTokensList: List<InternalStorageImage>
+
+    var isUserMapListChanged by mutableStateOf(false)
+    var isUserTokenListChanged by mutableStateOf(false)
 
     var mapImageUri: Uri? = null
 
@@ -163,6 +169,14 @@ class MainViewModel : ViewModel() {
         _backgroundMap.value = _backgroundMap.value.copy(
             isPickerVisible = state
         )
+    }
+
+    fun triggerUserMapList() {
+        isUserMapListChanged = true
+    }
+
+    fun triggerUserTokenList() {
+        isUserTokenListChanged = true
     }
 
 }
