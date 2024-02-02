@@ -9,7 +9,8 @@ data class BackgroundMap (
     var mapScale: Float = 1F,
     var isScaleLocked: Boolean = false,
     var isPickerVisible: Boolean = false,
-    var isTokenPickerVisible: Boolean = false
+    var isTokenPickerVisible: Boolean = false,
+    var isSelected: Boolean = false
 )                                                        
 
 

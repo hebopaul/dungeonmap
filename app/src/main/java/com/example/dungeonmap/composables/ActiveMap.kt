@@ -1,6 +1,7 @@
 package com.example.dungeonmap.composables
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -29,7 +30,8 @@ fun ActiveMap(
         ) {
         if ( mVM.mapImageUri == null ) Image(
             //We use the connectedModifier that was declared inside the TerrainScreen() Composable
-            modifier = modifier,
+            modifier = modifier
+                .clickable { mVM.makeMapSelected() },
             contentDescription = "Stock Image",
             painter = painterResource(
                 id = map.value.imageResource
@@ -39,6 +41,7 @@ fun ActiveMap(
             model = mVM.mapImageUri,
             contentDescription = "Image from gallery",
             modifier = modifier
+                .clickable { mVM.makeMapSelected() }
         )
     }
     Box(

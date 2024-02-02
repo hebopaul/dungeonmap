@@ -46,7 +46,6 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     var mapImageUri: Uri? = null
 
 
-
     //Functions to update the BackgroundMap and Token position
     fun updateMapOffset(newOffset: Offset) {
         _backgroundMap.value = _backgroundMap.value.copy(
@@ -115,7 +114,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     fun updateTokenOffset(newPosition: Offset, uuid: UUID) {
 
         _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
-            if (it.tokenId == uuid)
+            if (it.uuid == uuid)
                 it.copy(
                     position = Offset(
                         _activeTokenList.value[i].position.x + newPosition.x *
@@ -137,7 +136,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     fun updateTokenSize(sizeChange: Float, uuid: UUID) {
         _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
-            if (it.tokenId == uuid)
+            if (it.uuid == uuid)
                 it.copy(
                     tokenSize = (activeTokenList.value[i].tokenSize + (-sizeChange * 0.001F)).coerceIn(0.04F, 2F)
                 )
@@ -148,12 +147,29 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     fun createToken(drawable: Int? = null) {
         _activeTokenList.value += mutableListOf(
             Token(
-                imageResource = drawable ?: R.drawable.minotaur_berserker,
+                drawableRes = drawable ?: R.drawable.minotaur_berserker,
                 tokenSize = activeTokenList.value.last().tokenSize,
                 scale = activeTokenList.value.last().scale,
                 position = activeTokenList.value.last().position + Offset(10f, 10f)
             )
         )
+    }
+
+    fun deleteToken(uuid: UUID) {
+        _activeTokenList.value = _activeTokenList.value.filter { it.uuid!= uuid }
+    }
+
+    fun duplicateToken(token: Token) {
+        createToken(token.drawableRes)
+    }
+
+    fun setTokenInitiative (number: Int, uuid: UUID) {
+        _activeTokenList.value = _activeTokenList.value.mapIndexed { index, token ->
+            if (token.uuid == uuid)
+                token.copy(initiative = number)
+            else
+                token
+        }
     }
 
 
@@ -179,6 +195,31 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
     fun updateUserAddedTokensList(){
         _userAddedTokensList = fileHandler.getInternalStorageTokenList()
+    }
+
+    fun makeMapSelected () {
+        _backgroundMap.value = _backgroundMap.value.copy(
+            isSelected = true
+        )
+        _activeTokenList.value = _activeTokenList.value.map {
+            it.copy(
+                isSelected = false
+            )
+        }
+    }
+
+    fun makeItemSelected (selectedToken: Token) {
+        _activeTokenList.value = _activeTokenList.value.mapIndexed { index, token ->
+            if (token.uuid == selectedToken.uuid)
+                token.copy(
+                    isSelected = true
+                )
+            else
+                token
+        }
+        _backgroundMap.value = _backgroundMap.value.copy(
+            isSelected = false
+        )
     }
 
 }
