@@ -170,4 +170,11 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         )
     }
 
+    fun updateUserAddedMapsList(){
+        userAddedMapsList = fileHandler.getInternalStorageMapList()
+    }
+    fun updateUserAddedTokensList(){
+        userAddedTokensList = fileHandler.getInternalStorageTokenList()
+    }
+
 }

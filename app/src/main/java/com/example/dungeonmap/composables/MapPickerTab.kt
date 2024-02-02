@@ -46,6 +46,7 @@ fun MapPickerTab(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
             mVM.fileHandler.importMapFromDevice(it)
+            mVM.updateUserAddedMapsList()
         }
 
     )
@@ -211,6 +212,7 @@ fun MapRowItem(
                 .scale(1.5f)
                 .clickable {
                     mVM.fileHandler.deleteImageFromInternalStorage(map.uri)
+                    mVM.updateUserAddedMapsList()
                 }
         )
     }

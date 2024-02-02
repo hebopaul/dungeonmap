@@ -43,7 +43,10 @@ fun TokenPickerTab(
 
     val tokenPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { mVM.fileHandler.importTokenFromDevice(it) }
+        onResult = {
+            mVM.fileHandler.importTokenFromDevice(it)
+            mVM.updateUserAddedTokensList()
+        }
     )
 
     Surface (
@@ -206,6 +209,7 @@ fun TokenRowItem(
                 .scale(1.5f)
                 .clickable {
                     mVM.fileHandler.deleteImageFromInternalStorage(token.uri)
+                    mVM.updateUserAddedTokensList()
                 }
         )
     }
