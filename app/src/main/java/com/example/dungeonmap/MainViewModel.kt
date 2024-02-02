@@ -11,6 +11,7 @@ import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.storage.FileHandler
+import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,10 +33,13 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
     val activeTokenList: StateFlow<List<Token>> = _activeTokenList.asStateFlow()
 
-    lateinit var stockMapsList: List<StockImage?>
-    lateinit var stockTokensList: List<StockImage?>
-    var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
-    var userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
+    val stockMapsList: List<StockImage> = getDrawableResourcesIds("map")
+    val stockTokensList: List<StockImage> = getDrawableResourcesIds("token")
+    private var _userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
+    private var _userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
+
+    val userAddedMapsList = _userAddedMapsList
+    val userAddedTokensList = _userAddedTokensList
 
 
 
@@ -171,10 +175,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun updateUserAddedMapsList(){
-        userAddedMapsList = fileHandler.getInternalStorageMapList()
+        _userAddedMapsList = fileHandler.getInternalStorageMapList()
     }
     fun updateUserAddedTokensList(){
-        userAddedTokensList = fileHandler.getInternalStorageTokenList()
+        _userAddedTokensList = fileHandler.getInternalStorageTokenList()
     }
 
 }

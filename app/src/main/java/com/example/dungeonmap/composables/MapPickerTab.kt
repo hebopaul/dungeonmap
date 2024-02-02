@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
@@ -154,7 +155,7 @@ fun MapRowItem(
     ){
 
         Icon(
-            painter = map!!.image,
+            painter = painterResource(map!!.id),
             contentDescription = map.name,
             tint = Color.Unspecified,
             modifier = Modifier

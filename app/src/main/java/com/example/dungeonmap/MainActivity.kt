@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.composables.TerrainScreen
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.ui.theme.DungeonMapTheme
-import com.example.dungeonmap.utilities.getDrawableResourcesIds
 
 
 class MainActivity : ComponentActivity() {
@@ -22,16 +21,6 @@ class MainActivity : ComponentActivity() {
                 val fileHandler = FileHandler(this@MainActivity)
                 val viewModelFactory = MainViewModelFactory( fileHandler )
                 val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
-
-
-
-                mVM.stockTokensList = getDrawableResourcesIds("token")
-                mVM.stockMapsList = getDrawableResourcesIds("map")
-
-               /* mVM.userAddedTokensList = fileHandler.getInternalTokenList()
-                mVM.userAddedMapsList = fileHandler.getInternalMapList()
-                */
-
 
                 DungeonMapApp(mVM)
 
