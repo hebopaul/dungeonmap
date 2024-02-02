@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
-import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.beautifyResName
 import com.example.dungeonmap.utilities.toDp
@@ -39,13 +38,12 @@ import com.example.dungeonmap.utilities.toDp
 
 @Composable
 fun TokenPickerTab(
-    mVM: MainViewModel,
-    fileHandler: FileHandler
+    mVM: MainViewModel
 ) {
 
     val tokenPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { fileHandler.importTokenFromDevice(it) }
+        onResult = { mVM.fileHandler.importTokenFromDevice(it) }
     )
 
     Surface (
@@ -68,12 +66,12 @@ fun TokenPickerTab(
             }
             item {
                 CollapsibleContent(header = "User Added") {
-                    TokenList(mVM, fileHandler)
+                    TokenList(mVM, true)
                 }
             }
             item {
                 Spacer(modifier = Modifier.height(100.toDp))
-                ImportItemIcon(pickerLauncher = tokenPickerLauncher)
+                ImportItemIcon(tokenPickerLauncher)
                 Spacer(modifier = Modifier.height(100.toDp))
             }
 
@@ -108,14 +106,14 @@ fun TokenList(
 @Composable
 fun TokenList(
     mVM: MainViewModel,
-    fileHandler: FileHandler
+    isUserAdded: Boolean = false
 ) {
 
     Column(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        FileHandler.internalStorageTokenList.forEach { token ->
+        mVM.userAddedTokensList.forEach { token ->
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,8 +122,7 @@ fun TokenList(
                 shadowElevation = 3.dp,
                 color = MaterialTheme.colorScheme.background
             ) {
-                if (token in FileHandler.internalStorageTokenList)
-                    TokenRowItem(mVM, token, fileHandler)
+                TokenRowItem(mVM, token)
             }
         }
     }
@@ -172,8 +169,7 @@ fun TokenRowItem(
 @Composable
 fun TokenRowItem(
     mVM: MainViewModel,
-    token: InternalStorageImage?,
-    fileHandler: FileHandler
+    token: InternalStorageImage?
 ) {
     Row(
         modifier = Modifier
@@ -209,98 +205,8 @@ fun TokenRowItem(
             modifier = Modifier
                 .scale(1.5f)
                 .clickable {
-                    fileHandler.deleteImageFromInternalStorage(token.uri)
+                    mVM.fileHandler.deleteImageFromInternalStorage(token.uri)
                 }
         )
     }
 }
-
-/*Surface(
-    modifier = Modifier
-        .fillMaxSize(),
-    color = MaterialTheme.colorScheme.background
-
-) {
-    LazyColumn{
-        item {
-            CollapsibleContent(header = "Stock") {
-                TokenList(mVM)
-            }
-        }
-        item {
-            CollapsibleContent(header = "User Added") {
-                TokenList(mVM)
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(100.toDp))
-            ImportItemIcon(pickerLauncher = tokenPickerLauncher)
-            Spacer(modifier = Modifier.height(100.toDp))
-        }
-
-    }
-
-}
-}
-
-@Composable
-fun TokenList(
-mVM: MainViewModel
-) {
-Column(
-    modifier = Modifier
-        .fillMaxSize()
-        .padding(top = 20.toDp),
-) {
-    mVM.stockTokensList.forEach { token ->
-
-        TokenRowItem(mVM, token)
-
-
-    }
-}
-}
-
-@Composable
-fun TokenRowItem(
-mVM: MainViewModel,
-token: StockImage?
-) {
-Row(
-    modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 20.toDp, vertical = 10.toDp)
-        .clickable {
-            mVM.updateMapImageResource(token!!.id)
-            mVM.setPickerVisible(false)
-        },
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Start,
-
-    ){
-
-    Icon(
-        painter = token!!.image,
-        contentDescription = token.name,
-        tint = Color.Unspecified,
-        modifier = Modifier
-            .fillMaxHeight(0.97F)
-            .padding(start = 15.toDp)
-    )
-    Spacer(Modifier.width(30.toDp))
-
-    Text(
-        text = token.name ,
-        fontSize = 20.sp,
-        fontFamily = arsenalFamily
-    )
-
-}
-}
-
-
-
-
-
-
-*/

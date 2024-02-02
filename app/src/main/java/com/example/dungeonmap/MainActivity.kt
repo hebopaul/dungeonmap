@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.composables.TerrainScreen
 import com.example.dungeonmap.storage.FileHandler
@@ -22,10 +19,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DungeonMapTheme {
-                val viewModelFactory = MainViewModelFactory()
+                val fileHandler = FileHandler(this@MainActivity)
+                val viewModelFactory = MainViewModelFactory( fileHandler )
                 val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
 
-                val fileHandler by remember { mutableStateOf(FileHandler(this@MainActivity)) }
+
 
                 mVM.stockTokensList = getDrawableResourcesIds("token")
                 mVM.stockMapsList = getDrawableResourcesIds("map")
@@ -35,7 +33,7 @@ class MainActivity : ComponentActivity() {
                 */
 
 
-                DungeonMapApp(mVM, fileHandler)
+                DungeonMapApp(mVM)
 
             }
         }
@@ -47,21 +45,6 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun DungeonMapApp(mVM: MainViewModel, fileHandler: FileHandler) {
-    TerrainScreen(mVM, fileHandler)
+fun DungeonMapApp(mVM: MainViewModel) {
+    TerrainScreen(mVM)
 }
-
-
-
-
-
-
-//This composable creates an animated tab that rises from below the screen, that presents the user with a
-//lazy grid of all the drawable that are returned by getDrawableResourcesIds() function
-
-
-
-
-
-
-

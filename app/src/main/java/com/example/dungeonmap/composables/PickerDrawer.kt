@@ -3,6 +3,7 @@
 package com.example.dungeonmap.composables
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,12 +53,17 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.dungeonmap.MainViewModel
-import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.toDp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PickerDrawer(mVM: MainViewModel, fileHandler: FileHandler) {
+fun PickerDrawer(mVM: MainViewModel) {
+
+    BackHandler {
+        mVM.setPickerVisible(false)
+    }
+
+
     val tabItems = listOf(
         TabItem(
             title = "Maps",
@@ -112,8 +118,8 @@ fun PickerDrawer(mVM: MainViewModel, fileHandler: FileHandler) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     when (pagerIndex) {
-                        0 -> MapPickerTab(mVM, fileHandler)
-                        1 -> TokenPickerTab(mVM, fileHandler)
+                        0 -> MapPickerTab(mVM)
+                        1 -> TokenPickerTab(mVM)
                     }
                 }
             }

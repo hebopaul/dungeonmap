@@ -16,10 +16,12 @@ import java.io.IOException
 class FileHandler(
     private val context: Context
 ) {
+/*
     companion object{
         lateinit var internalStorageTokenList: MutableList<InternalStorageImage>
         lateinit var internalStorageMapList: MutableList<InternalStorageImage>
     }
+*/
 
     init {
         //create the tokens and maps folders if they don't exist
@@ -29,8 +31,6 @@ class FileHandler(
         if (!File(context.filesDir, "maps").exists())
             File(context.filesDir, "maps").mkdirs()
 
-        updateInternalMapList()
-        updateInternalTokenList()
     }
 
     fun getFileList(): List<File> {
@@ -40,7 +40,7 @@ class FileHandler(
         }
         return files?.toList()?: listOf()
     }
-    fun updateInternalMapList()  {
+    fun getInternalStorageMapList(): List<InternalStorageImage>  {
         val files = File(context.filesDir, "maps").listFiles()
         val out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
@@ -54,10 +54,10 @@ class FileHandler(
                 )
             )
         }
-        internalStorageMapList = out
+        return out
     }
 
-    fun updateInternalTokenList()  {
+    fun getInternalStorageTokenList(): List<InternalStorageImage>  {
         val files = File(context.filesDir, "tokens").listFiles()
         val out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
@@ -71,7 +71,7 @@ class FileHandler(
                 )
             )
         }
-        internalStorageTokenList = out
+        return out
     }
 
 
@@ -103,9 +103,6 @@ class FileHandler(
             if ( file.canRead() && file.canWrite() && file.exists()) {
                 file.delete()
                 Log.d("Delete", fileUri)
-                internalStorageMapList.forEachIndexed { i, image -> if (image.uri == fileUri) internalStorageMapList.removeAt(i)}
-                internalStorageMapList.forEachIndexed { i, image -> if (image.uri == fileUri) internalStorageMapList.removeAt(i)}
-
             } else {
                 throw IOException()
             }
@@ -121,8 +118,6 @@ class FileHandler(
                 MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
             val fileName: String = imageUri.lastPathSegment.toString()
             saveTokenToInternal(bitmap, fileName)
-            updateInternalTokenList()
-
         }
     }
 
@@ -132,8 +127,6 @@ class FileHandler(
                 MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
             val fileName: String = imageUri.lastPathSegment.toString()
             saveMapToInternal(bitmap, fileName)
-            updateInternalMapList()
-
         }
     }
 

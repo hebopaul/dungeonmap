@@ -8,9 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
-import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
+import com.example.dungeonmap.storage.FileHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ const val MAX_SCALE: Float = 10F
 
 
 
-class MainViewModel : ViewModel() {
+class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
 
 
@@ -34,11 +34,10 @@ class MainViewModel : ViewModel() {
 
     lateinit var stockMapsList: List<StockImage?>
     lateinit var stockTokensList: List<StockImage?>
-    lateinit var userAddedMapsList: List<InternalStorageImage>
-    lateinit var userAddedTokensList: List<InternalStorageImage>
+    var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
+    var userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
 
-    var isUserMapListChanged by mutableStateOf(false)
-    var isUserTokenListChanged by mutableStateOf(false)
+
 
     var mapImageUri: Uri? = null
 
@@ -169,14 +168,6 @@ class MainViewModel : ViewModel() {
         _backgroundMap.value = _backgroundMap.value.copy(
             isPickerVisible = state
         )
-    }
-
-    fun triggerUserMapList() {
-        isUserMapListChanged = true
-    }
-
-    fun triggerUserTokenList() {
-        isUserTokenListChanged = true
     }
 
 }

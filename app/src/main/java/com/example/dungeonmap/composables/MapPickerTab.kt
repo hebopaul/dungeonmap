@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
-import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.beautifyResName
 import com.example.dungeonmap.utilities.toDp
@@ -40,15 +39,13 @@ import com.example.dungeonmap.utilities.toDp
 
 @Composable
 fun MapPickerTab(
-    mVM: MainViewModel,
-    fileHandler: FileHandler
+    mVM: MainViewModel
 ) {
 
     val mapPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
-            fileHandler.importMapFromDevice(it)
-            mVM.triggerUserMapList()
+            mVM.fileHandler.importMapFromDevice(it)
         }
 
     )
@@ -72,9 +69,9 @@ fun MapPickerTab(
                     MapList(mVM)
                 }
             }
-           item(key = FileHandler.internalStorageMapList) {
+           item {
                 CollapsibleContent(header = "User Added") {
-                    MapList(mVM, fileHandler)
+                    MapList(mVM, true)
                 }
             }
            item {
@@ -114,13 +111,13 @@ fun MapList(
 @Composable
 fun MapList(
     mVM: MainViewModel,
-    fileHandler: FileHandler
+    isUserAdded: Boolean = false
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        FileHandler.internalStorageMapList.forEach { map ->
+        mVM.userAddedMapsList.forEach { map ->
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,7 +126,7 @@ fun MapList(
                 shadowElevation = 3.dp,
                 color = MaterialTheme.colorScheme.background
             ) {
-                MapRowItem(mVM, map, fileHandler)
+                MapRowItem(mVM, map)
             }
         }
     }
@@ -176,8 +173,7 @@ fun MapRowItem(
 @Composable
 fun MapRowItem(
     mVM: MainViewModel,
-    map: InternalStorageImage?,
-    fileHandler: FileHandler
+    map: InternalStorageImage?
 ) {
     Row(
         modifier = Modifier
@@ -214,7 +210,7 @@ fun MapRowItem(
             modifier = Modifier
                 .scale(1.5f)
                 .clickable {
-                    fileHandler.deleteImageFromInternalStorage(map.uri)
+                    mVM.fileHandler.deleteImageFromInternalStorage(map.uri)
                 }
         )
     }

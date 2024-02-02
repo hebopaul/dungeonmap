@@ -18,11 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.dungeonmap.MainViewModel
-import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.toDp
 
 @Composable
-fun TerrainScreen(mVM: MainViewModel, fileHandler: FileHandler) {
+fun TerrainScreen(mVM: MainViewModel) {
 
     val mapState by mVM.backgroundMap.collectAsState()
 
@@ -64,7 +63,7 @@ fun TerrainScreen(mVM: MainViewModel, fileHandler: FileHandler) {
                     targetOffsetY = { it },
                     animationSpec = tween(500)
                 )
-            ){ PickerDrawer(mVM, fileHandler) }
+            ){ PickerDrawer(mVM) }
 
         }
     }
