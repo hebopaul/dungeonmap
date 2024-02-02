@@ -215,7 +215,9 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                     isSelected = true
                 )
             else
-                token
+                token.copy(
+                    isSelected = false
+                )
         }
         _backgroundMap.value = _backgroundMap.value.copy(
             isSelected = false
