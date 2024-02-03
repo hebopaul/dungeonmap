@@ -76,7 +76,7 @@ class FileHandler(
 
 
     private fun saveTokenToInternal(bmp: Bitmap, fileName: String) {
-        val file = File(context.filesDir.absolutePath, "token/$fileName.png")
+        val file = File(context.filesDir.absolutePath, "tokens/$fileName.png")
         //file.createNewFile()
         FileOutputStream(file).use {
             if (!bmp.compress(Bitmap.CompressFormat.PNG, 100, it)) {

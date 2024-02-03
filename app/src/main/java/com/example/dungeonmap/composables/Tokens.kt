@@ -1,5 +1,6 @@
 package com.example.dungeonmap.composables
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -7,8 +8,8 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -22,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -82,7 +84,8 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
                 contentDescription = "delete",
                 modifier = Modifier
                     .offset(x = (-150).toDp, y = (-100).toDp)
-                    .clickable { mVM.deleteToken(token.uuid) }
+                    .clickable { mVM.deleteToken(token.uuid) },
+                tint = MaterialTheme.colorScheme.error
             )
         }
         AnimatedVisibility(
@@ -121,7 +124,6 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         }
 
         SingleToken( mVM, token)
-
     }
 }
 
@@ -138,6 +140,7 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
                 width = animateDpAsState(
                     targetValue = if (token.isSelected) 20.toDp
                     else 0.toDp,
+                    animationSpec = tween(800),
                     label = "border animation"
                 ).value,
                 color = MaterialTheme.colorScheme.secondary,
@@ -145,16 +148,24 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
             )
             .pointerInput(Unit) {
 
-                detectDragGestures { _, dragAmount ->
-                    mVM.updateTokenOffset(dragAmount, token.uuid)
+                detectTransformGestures { _, drag, zoom, _ ->
+                    if(zoom == 1F && token.isSelected){
+                        mVM.updateTokenSize(zoom, token.uuid)
+                        Log.d("token zoom", zoom.toString())
+                    }
+                    else mVM.updateTokenOffset(drag, token.uuid)
+
                 }
             }
-            .pointerInput(Unit) {
+            /*.pointerInput(Unit) {
                 detectDragGesturesAfterLongPress { _, dragAmount ->
-                    mVM.updateTokenSize(dragAmount.y, token.uuid)
+
                 }
-            }
-            .clickable { mVM.makeItemSelected(token) }
+            }*/
+            .clickable(
+                remember { MutableInteractionSource() },
+                indication = null
+            ) { mVM.makeTokenSelected(token) }
 
     )
 }

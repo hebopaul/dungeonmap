@@ -28,9 +28,14 @@ fun TerrainScreen(mVM: MainViewModel) {
     val myModifier  = Modifier
         .fillMaxSize()
         .pointerInput(Unit) {
-            detectTransformGestures { _, dragChange, scaleChange, _ ->
-                mVM.updateMapScale(scaleChange)
-                mVM.updateMapOffset(dragChange)
+            detectTransformGestures { _, drag, zoom, _ ->
+                mVM.updateMapOffset(drag)
+                if (mapState.isSelected){
+                    mVM.updateMapScale(zoom)
+                }
+                else {
+                    mVM.updateTokenSize(zoom, mVM.getSelectedTokenUuid())
+                }
             }
         }
         .offset(

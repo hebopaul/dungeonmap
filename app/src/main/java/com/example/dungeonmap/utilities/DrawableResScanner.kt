@@ -3,10 +3,9 @@ package com.example.dungeonmap.utilities
 
 import com.example.dungeonmap.data.StockImage
 
-//the following function recovers the ids of all the drawable resources files and returns them in a list
-//along with their names as Pairs
 
-fun getDrawableResourcesIds(prefix: String): List<StockImage> {
+
+fun getStockImageList(prefix: String): List<StockImage> {
     val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
     val list: MutableList<StockImage> = mutableListOf()
     field.forEach {
@@ -14,10 +13,17 @@ fun getDrawableResourcesIds(prefix: String): List<StockImage> {
         if(prefix in it.name) list.add(
             StockImage (
                 id = it.getInt(it),
-                name = beautifyResName(it.name)
+                name = beautifyResName(it.name),
             )
         )
     }
+    return list
+}
+
+fun getDrawableResourcesIds(prefix: String): List<Int> {
+    val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
+    val list: MutableList<Int> = mutableListOf()
+     field.forEach { if (prefix in it.name) list.add(it.getInt(it))}
     return list
 }
 

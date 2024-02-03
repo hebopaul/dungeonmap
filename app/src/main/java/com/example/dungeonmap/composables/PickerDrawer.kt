@@ -12,6 +12,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,6 +111,7 @@ fun PickerDrawer(mVM: MainViewModel) {
                 }
             }
             HorizontalPager(
+                beyondBoundsPageCount = 1,
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxSize()
@@ -146,32 +148,26 @@ fun CollapsibleContent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(90.toDp),
+            .height(90.toDp)
+            .clickable { isExpanded = !isExpanded },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        IconButton(
+        Icon(
+            imageVector = Icons.Filled.ExpandMore,
+            contentDescription = "Expand",
             modifier = Modifier
-                .fillMaxHeight(),
-            onClick = {isExpanded = !isExpanded}
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ExpandMore,
-                contentDescription = "Expand",
-                modifier = Modifier
-                    .rotate(
-                        animateFloatAsState(
-                            targetValue = if (isExpanded) 0F else -90F,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioHighBouncy,
-                                stiffness = Spring.StiffnessMediumLow
-                            ),
-                            label = ""
-                        ).value
-                    )
-            )
-        }
+                .rotate(
+                    animateFloatAsState(
+                        targetValue = if (isExpanded) 0F else -90F,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioHighBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        label = ""
+                    ).value
+                )
+        )
         Text(header)
         Divider(
             modifier = Modifier

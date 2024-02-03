@@ -2,10 +2,12 @@ package com.example.dungeonmap.composables
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,6 +24,12 @@ fun ActiveMap(
 
     val map = mVM.backgroundMap.collectAsState()
 
+    val noRippleClickable: Modifier = modifier
+        .clickable(
+            remember { MutableInteractionSource() },
+            indication = null
+        ) { mVM.makeMapSelected() }
+
 
     Box(
         modifier = Modifier
@@ -30,8 +38,7 @@ fun ActiveMap(
         ) {
         if ( mVM.mapImageUri == null ) Image(
             //We use the connectedModifier that was declared inside the TerrainScreen() Composable
-            modifier = modifier
-                .clickable { mVM.makeMapSelected() },
+            modifier = noRippleClickable,
             contentDescription = "Stock Image",
             painter = painterResource(
                 id = map.value.imageResource
@@ -40,8 +47,7 @@ fun ActiveMap(
         else AsyncImage(
             model = mVM.mapImageUri,
             contentDescription = "Image from gallery",
-            modifier = modifier
-                .clickable { mVM.makeMapSelected() }
+            modifier = noRippleClickable
         )
     }
     Box(
@@ -50,7 +56,7 @@ fun ActiveMap(
         contentAlignment = Alignment.Center
     )
         {
-        Tokens(mVM)
+            Tokens(mVM)
         }
 
 

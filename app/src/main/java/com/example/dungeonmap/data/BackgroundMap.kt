@@ -10,7 +10,7 @@ data class BackgroundMap (
     var isScaleLocked: Boolean = false,
     var isPickerVisible: Boolean = false,
     var isTokenPickerVisible: Boolean = false,
-    var isSelected: Boolean = false
+    var isSelected: Boolean = true
 )                                                        
 
 

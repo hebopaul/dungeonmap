@@ -12,10 +12,12 @@ import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
+import com.example.dungeonmap.utilities.getStockImageList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
+import kotlin.random.Random
 
 const val MIN_SCALE: Float = 1F
 const val MAX_SCALE: Float = 10F
@@ -24,23 +26,20 @@ const val MAX_SCALE: Float = 10F
 
 class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
-
-
-
     //Initializing the BackgroundMap and Token as MutableStateFlow objects
     private val _backgroundMap = MutableStateFlow(BackgroundMap())
-    private val _activeTokenList = MutableStateFlow(listOf(Token()))
+    private val _activeTokenList:MutableStateFlow<List<Token>> = MutableStateFlow(listOf(Token()))
     val backgroundMap: StateFlow<BackgroundMap> = _backgroundMap.asStateFlow()
     val activeTokenList: StateFlow<List<Token>> = _activeTokenList.asStateFlow()
 
-    val stockMapsList: List<StockImage> = getDrawableResourcesIds("map")
-    val stockTokensList: List<StockImage> = getDrawableResourcesIds("token")
-    private var _userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
-    private var _userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
 
-    val userAddedMapsList = _userAddedMapsList
-    val userAddedTokensList = _userAddedTokensList
+    private val stockD20List: List<Int> = getDrawableResourcesIds("d20")
+    val stockMapsList: List<StockImage> = getStockImageList("map")
+    val stockTokensList: List<StockImage> = getStockImageList("token")
+    var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
+    var userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
 
+    val randomD20 = stockD20List[Random.nextInt(stockD20List.size-1)]
 
 
     var mapImageUri: Uri? = null
@@ -138,21 +137,25 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         _activeTokenList.value = _activeTokenList.value.mapIndexed { i, it ->
             if (it.uuid == uuid)
                 it.copy(
-                    tokenSize = (activeTokenList.value[i].tokenSize + (-sizeChange * 0.001F)).coerceIn(0.04F, 2F)
+                    tokenSize = (activeTokenList.value[i].tokenSize * ( sizeChange ).coerceIn(0.04F, 2F))
                 )
             else it
         }
     }
 
     fun createToken(drawable: Int? = null) {
-        _activeTokenList.value += mutableListOf(
-            Token(
-                drawableRes = drawable ?: R.drawable.minotaur_berserker,
-                tokenSize = activeTokenList.value.last().tokenSize,
-                scale = activeTokenList.value.last().scale,
-                position = activeTokenList.value.last().position + Offset(10f, 10f)
+
+        if (_activeTokenList.value.isNotEmpty()){
+            _activeTokenList.value += mutableListOf(
+                Token(
+                    drawableRes = drawable ?: R.drawable.minotaur_berserker,
+                    tokenSize = activeTokenList.value.last().tokenSize,
+                    scale = activeTokenList.value.last().scale,
+                    position = (activeTokenList.value.last().position + Offset(10f, 10f))
+                )
             )
-        )
+        } else _activeTokenList.value = mutableListOf(Token(drawable!!))
+
     }
 
     fun deleteToken(uuid: UUID) {
@@ -166,7 +169,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     fun setTokenInitiative (number: Int, uuid: UUID) {
         _activeTokenList.value = _activeTokenList.value.mapIndexed { index, token ->
             if (token.uuid == uuid)
-                token.copy(initiative = number)
+                token.copy(currentInitiave = number)
             else
                 token
         }
@@ -191,10 +194,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun updateUserAddedMapsList(){
-        _userAddedMapsList = fileHandler.getInternalStorageMapList()
+        userAddedMapsList = fileHandler.getInternalStorageMapList()
     }
     fun updateUserAddedTokensList(){
-        _userAddedTokensList = fileHandler.getInternalStorageTokenList()
+        userAddedTokensList = fileHandler.getInternalStorageTokenList()
     }
 
     fun makeMapSelected () {
@@ -208,7 +211,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         }
     }
 
-    fun makeItemSelected (selectedToken: Token) {
+    fun makeTokenSelected (selectedToken: Token) {
         _activeTokenList.value = _activeTokenList.value.mapIndexed { index, token ->
             if (token.uuid == selectedToken.uuid)
                 token.copy(
@@ -222,6 +225,21 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         _backgroundMap.value = _backgroundMap.value.copy(
             isSelected = false
         )
+    }
+
+    fun getSelectedTokenUuid (): UUID {
+        return _activeTokenList.value.find { it.isSelected }?.uuid?: UUID.randomUUID()
+    }
+
+    fun everyoneRollForInitiative () {
+        _activeTokenList.value.map {
+            it.copy(
+                 currentInitiave = Random.nextInt(1, 20) + it.initiativeModifier
+            )
+        }
+        _activeTokenList.value.forEach {
+            Log.d("Initiative", "${it.name}: ${it.currentInitiave}")
+        }
     }
 
 }
