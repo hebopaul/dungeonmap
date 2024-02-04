@@ -13,7 +13,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-class FileHandler(
+open class FileHandler(
     private val context: Context
 ) {
 /*
