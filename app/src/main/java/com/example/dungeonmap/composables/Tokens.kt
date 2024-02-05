@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -88,7 +89,9 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
 
         Box(modifier = Modifier
             .clip(CircleShape)
-            .alpha(if (token.isSelected) 0.3F else 0F)
+            .background(MaterialTheme.colorScheme.surface.copy(
+                alpha = if (token.isSelected) 0.3F else 0F
+            ))
             .size(animateDpAsState(
                 targetValue = when (token.isSelected) {
                     true -> 450.toDp
