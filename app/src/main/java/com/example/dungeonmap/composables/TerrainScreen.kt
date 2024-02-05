@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
@@ -23,14 +21,14 @@ import com.example.dungeonmap.utilities.toDp
 @Composable
 fun TerrainScreen(mVM: MainViewModel) {
 
-    val mapState by mVM.backgroundMap.collectAsState()
+    val map = mVM.backgroundMap
 
     val myModifier  = Modifier
         .fillMaxSize()
         .pointerInput(Unit) {
             detectTransformGestures { _, drag, zoom, _ ->
                 mVM.updateMapOffset(drag)
-                if (mapState.isSelected){
+                if (map.isSelected){
                     mVM.updateMapScale(zoom)
                 }
                 else {
@@ -39,10 +37,10 @@ fun TerrainScreen(mVM: MainViewModel) {
             }
         }
         .offset(
-            x = mapState.mapOffset.x.toDp,
-            y = mapState.mapOffset.y.toDp
+            x = mVM.globalPosition.x.toDp,
+            y = mVM.globalPosition.y.toDp
         )
-        .scale(mapState.mapScale)
+        .scale(mVM.globalScale)
         .animateContentSize()
 
 
@@ -59,7 +57,7 @@ fun TerrainScreen(mVM: MainViewModel) {
             )
             //MapPickerDrawer(mVM)
             AnimatedVisibility(
-                visible = mapState.isPickerVisible,
+                visible = mVM.isPickerVisible,
                 enter = slideInVertically (
                     initialOffsetY = { it },
                     animationSpec = tween(500)

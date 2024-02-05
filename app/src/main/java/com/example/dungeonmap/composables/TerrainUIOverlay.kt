@@ -9,15 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +32,7 @@ import com.example.dungeonmap.utilities.toDp
 // on the Terrain
 @Composable
 fun TerrainUIOverlay( mVM: MainViewModel ) {
-    val mapState = mVM.backgroundMap.collectAsState()
+    val mapState = mVM.backgroundMap
 
     val shake = remember { Animatable(0f) }
     var d20Clicked by remember { mutableStateOf(0L) }
@@ -64,7 +61,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
 
             IconButton(
                 onClick = {
-                    mVM.setPickerVisible(true)
+                    mVM.setPickerVisibility(true)
                 },
                 content = {
                     Icon(
@@ -90,16 +87,6 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                     .scale(1.5F +  animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value )
                     .offset(x = 0.toDp, y = -30.toDp)
                     .rotate(shake.value)
-            )
-            IconButton(
-                onClick = { mVM.lockedScaleIconClicked() },
-                content = {
-                    Icon(
-                        if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
-                        contentDescription = "Locked scale icon",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             )
         }
     }

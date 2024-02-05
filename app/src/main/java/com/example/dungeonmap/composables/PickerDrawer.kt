@@ -61,7 +61,7 @@ import com.example.dungeonmap.utilities.toDp
 fun PickerDrawer(mVM: MainViewModel) {
 
     BackHandler {
-        mVM.setPickerVisible(false)
+        mVM.setPickerVisibility(false)
     }
 
 

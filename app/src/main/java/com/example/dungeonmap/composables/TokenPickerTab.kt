@@ -145,7 +145,7 @@ fun TokenRowItem(
             .padding(horizontal = 20.toDp, vertical = 10.toDp)
             .clickable {
                 mVM.createToken(token!!.id)
-                mVM.setPickerVisible(false)
+                mVM.setPickerVisibility(false)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
@@ -181,7 +181,7 @@ fun TokenRowItem(
             .padding(horizontal = 20.toDp, vertical = 10.toDp)
             .clickable {
                 //TODO: mVM.createToken(token.image)
-                mVM.setPickerVisible(false)
+                mVM.setPickerVisibility(false)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -1,16 +1,12 @@
 package com.example.dungeonmap.data
 
-import androidx.compose.ui.geometry.Offset
+import android.net.Uri
 import com.example.dungeonmap.R
 
 data class BackgroundMap (
-    var imageResource: Int = R.drawable.map_tombofhorrors,
-    var mapOffset: Offset = Offset(0F, 0F),
-    var mapScale: Float = 1F,
-    var isScaleLocked: Boolean = false,
-    var isPickerVisible: Boolean = false,
-    var isTokenPickerVisible: Boolean = false,
-    var isSelected: Boolean = true
+    var resId: Int? = R.drawable.map_tombofhorrors,
+    var uri: Uri? = null,
+    val isSelected: Boolean = true
 )                                                        
 
 

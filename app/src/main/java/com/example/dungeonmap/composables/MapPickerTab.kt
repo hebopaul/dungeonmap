@@ -146,8 +146,8 @@ fun MapRowItem(
             .fillMaxWidth()
             .padding(horizontal = 20.toDp, vertical = 10.toDp)
             .clickable {
-                mVM.updateMapImageResource(map!!.id)
-                mVM.setPickerVisible(false)
+                mVM.updateMapResourceId(map!!.id)
+                mVM.setPickerVisibility(false)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -183,7 +183,7 @@ fun MapRowItem(
             .padding(horizontal = 20.toDp, vertical = 10.toDp)
             .clickable {
                 mVM.updateMapImageUri(Uri.parse(map?.uri))
-                mVM.setPickerVisible(false)
+                mVM.setPickerVisibility(false)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

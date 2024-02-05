@@ -6,7 +6,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +21,7 @@ fun ActiveMap(
     mVM: MainViewModel,
 ) {
 
-    val map = mVM.backgroundMap.collectAsState()
+    val map = mVM.backgroundMap
 
     val noRippleClickable: Modifier = modifier
         .clickable(
@@ -36,16 +35,17 @@ fun ActiveMap(
             .fillMaxSize(),
 
         ) {
-        if ( mVM.mapImageUri == null ) Image(
+        if ( map.uri == null )
+            Image(
             //We use the connectedModifier that was declared inside the TerrainScreen() Composable
             modifier = noRippleClickable,
             contentDescription = "Stock Image",
             painter = painterResource(
-                id = map.value.imageResource
+                id = map.resId!!
             )
         )
         else AsyncImage(
-            model = mVM.mapImageUri,
+            model = map.uri!!,
             contentDescription = "Image from gallery",
             modifier = noRippleClickable
         )
