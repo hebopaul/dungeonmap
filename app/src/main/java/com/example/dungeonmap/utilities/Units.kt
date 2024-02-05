@@ -13,6 +13,9 @@ val Dp.toPxFloat : Float @Composable get() { return with(LocalDensity.current) {
 val Int.toDp   : Dp @Composable get() = with(LocalDensity.current) { toDp() }
 val Float.toDp : Dp @Composable get() = with(LocalDensity.current) { toDp() }
 
+
+inline val Int.dp: Dp get() = Dp(value = this.toFloat())
+
 val SCREEN_WIDTH:  Float @Composable get()  = LocalConfiguration.current.screenWidthDp.toFloat()
 val SCREEN_HEIGHT: Float @Composable get()  = LocalConfiguration.current.screenHeightDp.toFloat()
 
