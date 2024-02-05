@@ -50,8 +50,11 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
 
     //Functions to update the BackgroundMap and Token position
-    fun updateMapOffset(newOffset: Offset) {
-        globalPosition = Offset(newOffset.x, newOffset.y)
+    fun updateMapPosition(newOffset: Offset) {
+        globalPosition = Offset(
+            globalPosition.x + newOffset.x,
+            globalPosition.y + newOffset.y
+        )
 
         activeTokenList = activeTokenList.mapIndexed { i, it ->
             it.copy(
@@ -69,15 +72,8 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
         if (scaleChange != 0F) {
 
-            globalScale = scaleChange * globalScale.coerceIn(
-                                                        MIN_SCALE,
-                                                        MAX_SCALE
-                                                    )
-            activeTokenList = activeTokenList.mapIndexed { i, it ->
-                it.copy(
-                    scale = scaleChange * activeTokenList[i].scale.coerceIn(MIN_SCALE, MAX_SCALE)
-                )
-            }
+            globalScale = (scaleChange * globalScale).coerceIn( MIN_SCALE, MAX_SCALE )
+
             //In order for the map to stay centered on the screen when zooming in or out, we need to
             //update the map offset as well
             if (globalScale < MAX_SCALE && globalScale > MIN_SCALE)
@@ -102,8 +98,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
             "updateMapScale called",
             "map offset = ${globalPosition}" +
             "map scale = ${globalScale}" +
-            "token offset = ${activeTokenList[0].position}" +
-            "token scale = ${activeTokenList[0].scale}"
+            "token offset = ${activeTokenList[0].position}"
         )
     }
 
@@ -142,7 +137,6 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 Token(
                     drawableRes = drawable ?: R.drawable.minotaur_berserker,
                     tokenSize = activeTokenList.last().tokenSize,
-                    scale = activeTokenList.last().scale,
                     position = (activeTokenList.last().position + Offset(10f, 10f))
                 )
             )

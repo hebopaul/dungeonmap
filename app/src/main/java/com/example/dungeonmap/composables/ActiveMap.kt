@@ -17,13 +17,13 @@ import com.example.dungeonmap.MainViewModel
 // i.e the image that acts as the playing board of the game
 @Composable
 fun ActiveMap(
-    modifier: Modifier,
+    myModifier: Modifier,
     mVM: MainViewModel,
 ) {
 
     val map = mVM.backgroundMap
 
-    val noRippleClickable: Modifier = modifier
+    val noRippleClickable: Modifier = myModifier
         .clickable(
             remember { MutableInteractionSource() },
             indication = null

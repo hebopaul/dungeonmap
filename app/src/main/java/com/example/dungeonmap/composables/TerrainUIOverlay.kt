@@ -32,8 +32,8 @@ import com.example.dungeonmap.utilities.toDp
 // on the Terrain
 @Composable
 fun TerrainUIOverlay( mVM: MainViewModel ) {
-    val mapState = mVM.backgroundMap
 
+    //cool die animation
     val shake = remember { Animatable(0f) }
     var d20Clicked by remember { mutableStateOf(0L) }
     LaunchedEffect(d20Clicked) {

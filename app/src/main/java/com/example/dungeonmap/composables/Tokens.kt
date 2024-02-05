@@ -1,6 +1,5 @@
 package com.example.dungeonmap.composables
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -51,6 +50,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
     Box(
         modifier = Modifier
             .size(500.toDp)
+            .scale((mVM.globalScale * token.tokenSize))
             .offset(
                 x = token.position.x.toDp,
                 y = token.position.y.toDp
@@ -134,7 +134,6 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
         token.name ?: "",
         tint = Color.Unspecified,
         modifier = Modifier
-            .scale((token.scale * token.tokenSize))
             .border(
                 width = animateDpAsState(
                     targetValue = if (token.isSelected) 20.toDp
@@ -148,19 +147,10 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
             .pointerInput(Unit) {
 
                 detectTransformGestures { _, drag, zoom, _ ->
-                    if(zoom == 1F && token.isSelected){
-                        mVM.updateTokenSize(zoom, token.uuid)
-                        Log.d("token zoom", zoom.toString())
-                    }
-                    else mVM.updateTokenOffset(drag, token.uuid)
-
+                    if(zoom == 1F) mVM.updateTokenOffset(drag, token.uuid)
+                    println("zoom = $zoom")
                 }
             }
-            /*.pointerInput(Unit) {
-                detectDragGesturesAfterLongPress { _, dragAmount ->
-
-                }
-            }*/
             .clickable(
                 remember { MutableInteractionSource() },
                 indication = null

@@ -27,7 +27,7 @@ fun TerrainScreen(mVM: MainViewModel) {
         .fillMaxSize()
         .pointerInput(Unit) {
             detectTransformGestures { _, drag, zoom, _ ->
-                mVM.updateMapOffset(drag)
+                if (zoom == 1F) mVM.updateMapPosition(drag)
                 if (map.isSelected){
                     mVM.updateMapScale(zoom)
                 }
