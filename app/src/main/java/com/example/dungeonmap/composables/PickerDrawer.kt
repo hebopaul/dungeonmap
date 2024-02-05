@@ -64,7 +64,6 @@ fun PickerDrawer(mVM: MainViewModel) {
         mVM.setPickerVisible(false)
     }
 
-
     val tabItems = listOf(
         TabItem(
             title = "Maps",
@@ -77,6 +76,7 @@ fun PickerDrawer(mVM: MainViewModel) {
             selectedIcon = Icons.Filled.RunCircle
         )
     )
+
     // The pager state, which keeps track of the current page and
     // whether or not the user is currently swiping between pages.
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -86,9 +86,11 @@ fun PickerDrawer(mVM: MainViewModel) {
     LaunchedEffect(selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
     }
+
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
     }
+
     Surface(color = MaterialTheme.colorScheme.background) {
         Column {
 
@@ -98,18 +100,14 @@ fun PickerDrawer(mVM: MainViewModel) {
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
                         text = { Text(tabItem.title) },
-                        icon = {
-                            Icon(
+                        icon = { Icon(
                                 imageVector =
                                     if (selectedTabIndex == index) tabItem.selectedIcon
                                     else tabItem.unselectedIcon,
-                                contentDescription = tabItem.title
-                            )
-                        }
-                    )
-
+                                contentDescription = tabItem.title) })
                 }
             }
+
             HorizontalPager(
                 beyondBoundsPageCount = 1,
                 state = pagerState,
@@ -117,9 +115,7 @@ fun PickerDrawer(mVM: MainViewModel) {
                     .fillMaxSize()
                     .weight(1F)
             ) {pagerIndex ->
-                Box (
-                    modifier = Modifier.fillMaxSize()
-                ) {
+                Box (Modifier.fillMaxSize()) {
                     when (pagerIndex) {
                         0 -> MapPickerTab(mVM)
                         1 -> TokenPickerTab(mVM)
@@ -137,70 +133,66 @@ data class TabItem(
     val selectedIcon: ImageVector
 )
 
+
 @Composable
 fun CollapsibleContent(
     header: String,
     content: @Composable () -> Unit
 ) {
-    var isExpanded by rememberSaveable { mutableStateOf(true)}
+    var isExpanded by rememberSaveable { mutableStateOf(true) }
 
+    val degrees by animateFloatAsState(
+        targetValue = if (isExpanded) 0f else -90f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "animation_progress")
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(90.toDp)
-            .clickable { isExpanded = !isExpanded },
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Filled.ExpandMore,
-            contentDescription = "Expand",
-            modifier = Modifier
-                .rotate(
-                    animateFloatAsState(
-                        targetValue = if (isExpanded) 0F else -90F,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioHighBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        ),
-                        label = ""
-                    ).value
-                )
-        )
-        Text(header)
-        Divider(
+    Column {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.toDp),
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-    AnimatedVisibility(
-        visible = isExpanded,
-    ) {
-        content()
+                .height(90.toDp)
+                .clickable { isExpanded = !isExpanded },
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ExpandMore,
+                contentDescription = "Expand",
+                modifier = Modifier
+                    .rotate(degrees)
+            )
+
+            Text(header)
+
+            Divider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.toDp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        AnimatedVisibility(
+            visible = isExpanded,
+            content = { content() })
     }
 }
 
 
 @Composable
-fun ImportItemIcon(pickerLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>?) {
+fun ImportItemIcon(pickerLauncher: () -> Unit) {
    Box(
        modifier = Modifier
            .fillMaxWidth()
            .fillMaxHeight(0.1F),
        contentAlignment = Alignment.Center
-
    ) {
         IconButton(
-            modifier = Modifier
-                .scale(1.7F),
-            onClick = {
-                pickerLauncher?.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-            }
+            modifier = Modifier.scale(1.7F),
+            onClick = pickerLauncher
         ) {
             Icon(
                 imageVector = Icons.Filled.AddCircle,
@@ -215,8 +207,8 @@ fun ImportItemIcon(pickerLauncher: ManagedActivityResultLauncher<PickVisualMedia
 
 @Preview
 @Composable
-fun CollapsibleContentTest() {
-    Surface {
+fun Collapsible_Content_Test() {
+    Surface(Modifier.fillMaxSize()) {
         CollapsibleContent("test") {
             Column {
                 List(100) {

@@ -5,7 +5,7 @@ import com.example.dungeonmap.R
 
 data class BackgroundMap (
     var imageResource: Int = R.drawable.map_tombofhorrors,
-    var mapOffset: Offset = Offset(0F, 0F),
+    var mapOffset: Offset = Offset.Zero,
     var mapScale: Float = 1F,
     var isScaleLocked: Boolean = false,
     var isPickerVisible: Boolean = false,

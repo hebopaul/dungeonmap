@@ -5,7 +5,6 @@ import com.example.dungeonmap.R
 import java.util.UUID
 
 data class Token (
-
     var drawableRes: Int = R.drawable.minotaur_berserker,
     var name: String? = null,
     var isEnemy: Boolean = false,
@@ -16,5 +15,4 @@ data class Token (
     var initiativeModifier: Int = 0,
     val uuid: UUID = UUID.randomUUID(),
     var position: Offset = Offset(0F, 0F)
-
 )

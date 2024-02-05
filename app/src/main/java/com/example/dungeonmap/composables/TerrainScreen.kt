@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.utilities.toDp
+import com.example.dungeonmap.utilities.tween
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun TerrainScreen(mVM: MainViewModel) {
@@ -30,11 +32,9 @@ fun TerrainScreen(mVM: MainViewModel) {
         .pointerInput(Unit) {
             detectTransformGestures { _, drag, zoom, _ ->
                 mVM.updateMapOffset(drag)
-                if (mapState.isSelected){
-                    mVM.updateMapScale(zoom)
-                }
-                else {
-                    mVM.updateTokenSize(zoom, mVM.getSelectedTokenUuid())
+                when (mapState.isSelected) {
+                    true -> mVM.updateMapScale(zoom)
+                    else -> mVM.updateTokenSize(zoom, mVM.getSelectedTokenUuid())
                 }
             }
         }
@@ -50,26 +50,40 @@ fun TerrainScreen(mVM: MainViewModel) {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(
-            modifier = Modifier
-        ) {
-            ActiveMap(
-                myModifier,
-                mVM
-            )
+        Box {
+            ActiveMap(myModifier, mVM)
             //MapPickerDrawer(mVM)
             AnimatedVisibility(
                 visible = mapState.isPickerVisible,
                 enter = slideInVertically (
                     initialOffsetY = { it },
-                    animationSpec = tween(500)
+                    animationSpec = tween(0.5.seconds)
                 ),
                 exit = slideOutVertically (
                     targetOffsetY = { it },
-                    animationSpec = tween(500)
-                )
-            ){ PickerDrawer(mVM) }
+                    animationSpec = tween(0.5.seconds)
+                ),
+                content = { PickerDrawer(mVM) }
+            )
 
+            // NK: These type a closures, better to be explicitly set
+            /*
+               ComposableThingy(
+                    someParam = someValue,
+                    someParam = someValue,
+                    someParam = someValue,
+                    someParam = someValue
+               ) { PickerDrawer() }
+
+              Usually Better ==>
+              ComposableThingy(
+                    someParam = someValue,
+                    someParam = someValue,
+                    someParam = someValue,
+                    someParam = someValue,
+                    content = { PickerDrawer() }
+               )
+             */
         }
     }
 }

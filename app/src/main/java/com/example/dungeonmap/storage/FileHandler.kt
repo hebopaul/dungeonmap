@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 class FileHandler(
-    private val context: Context
+    context: Context
 ) {
 /*
     companion object{
@@ -23,25 +23,25 @@ class FileHandler(
     }
 */
 
+    private val ctx = context.applicationContext
+
     init {
         //create the tokens and maps folders if they don't exist
-        if (!File(context.filesDir, "tokens").exists())
-            File(context.filesDir, "tokens").mkdirs()
-
-        if (!File(context.filesDir, "maps").exists())
-            File(context.filesDir, "maps").mkdirs()
-
+        listOf("tokens", "map")
+            .map { File(ctx.filesDir, it) }
+            .forEach { if (!it.exists()) { it.mkdirs() } }
     }
 
     fun getFileList(): List<File> {
-        val files = File(context.filesDir, "").listFiles()
+        val files = File(ctx.filesDir, "").listFiles()
         files?.forEach {
             Log.d("File Read:", it.absolutePath.toString())
         }
         return files?.toList()?: listOf()
     }
+
     fun getInternalStorageMapList(): List<InternalStorageImage>  {
-        val files = File(context.filesDir, "maps").listFiles()
+        val files = File(ctx.filesDir, "maps").listFiles()
         val out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
             Log.d("File Read:", it.absolutePath.toString())
@@ -58,7 +58,7 @@ class FileHandler(
     }
 
     fun getInternalStorageTokenList(): List<InternalStorageImage>  {
-        val files = File(context.filesDir, "tokens").listFiles()
+        val files = File(ctx.filesDir, "tokens").listFiles()
         val out: MutableList<InternalStorageImage> = mutableListOf()
         files?.forEach {
             Log.d("File Read:", it.absolutePath.toString())
@@ -76,7 +76,7 @@ class FileHandler(
 
 
     private fun saveTokenToInternal(bmp: Bitmap, fileName: String) {
-        val file = File(context.filesDir.absolutePath, "tokens/$fileName.png")
+        val file = File(ctx.filesDir.absolutePath, "tokens/$fileName.png")
         //file.createNewFile()
         FileOutputStream(file).use {
             if (!bmp.compress(Bitmap.CompressFormat.PNG, 100, it)) {
@@ -87,7 +87,7 @@ class FileHandler(
     }
 
     private fun saveMapToInternal(bmp: Bitmap, fileName: String) {
-        val file = File(context.filesDir.absolutePath, "maps/$fileName.jpg")
+        val file = File(ctx.filesDir.absolutePath, "maps/$fileName.jpg")
         //file.createNewFile()
         FileOutputStream(file).use {
             if (!bmp.compress(Bitmap.CompressFormat.JPEG, 100, it)) {
@@ -115,7 +115,7 @@ class FileHandler(
     fun importTokenFromDevice(imageUri: Uri?) {
         if (imageUri != null) {
             val bitmap: Bitmap =
-                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+                MediaStore.Images.Media.getBitmap(ctx.contentResolver, imageUri)
             val fileName: String = imageUri.lastPathSegment.toString()
             saveTokenToInternal(bitmap, fileName)
         }
@@ -124,7 +124,7 @@ class FileHandler(
     fun importMapFromDevice(imageUri: Uri?) {
         if (imageUri != null) {
             val bitmap: Bitmap =
-                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+                MediaStore.Images.Media.getBitmap(ctx.contentResolver, imageUri)
             val fileName: String = imageUri.lastPathSegment.toString()
             saveMapToInternal(bitmap, fileName)
         }

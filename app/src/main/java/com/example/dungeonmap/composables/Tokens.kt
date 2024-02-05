@@ -3,7 +3,6 @@ package com.example.dungeonmap.composables
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.border
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -36,6 +34,10 @@ import androidx.compose.ui.unit.IntOffset
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.utilities.toDp
+import com.example.dungeonmap.utilities.tween
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 
 @Composable
@@ -43,12 +45,37 @@ fun Tokens(mVM: MainViewModel) {
     val tokenList = mVM.activeTokenList.collectAsState()
 
     tokenList.value.forEach { token ->
-        TokenBox( mVM, token )
+        TokenBox(mVM, token)
     }
 }
 
 @Composable
 fun TokenBox (mVM: MainViewModel, token: Token) {
+
+    //region Helper functions
+
+    fun slideIn(
+        duration: Duration = 500.milliseconds,
+        delay: Duration = Duration.ZERO,
+        factorsXY: Pair<Float, Float>
+    ) = slideIn(
+        initialOffset = { IntOffset(
+            x = (it.width * factorsXY.first).toInt(),
+            y = (it.height * factorsXY.second).toInt()) },
+        animationSpec = tween(duration, delay))
+
+    fun slideOut(
+        duration: Duration = 500.milliseconds,
+        delay: Duration = Duration.ZERO,
+        factorsXY: Pair<Float, Float>
+    ) = slideOut(
+        targetOffset = { IntOffset(
+            x = (it.width * factorsXY.first).toInt(),
+            y = (it.height * factorsXY.second).toInt()) },
+        animationSpec = tween(duration, delay))
+
+    //endregion Helper functions
+
     Box(
         modifier = Modifier
             .size(500.toDp)
@@ -59,60 +86,54 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         contentAlignment = Alignment.Center
     ) {
 
-        Surface(
-            modifier = Modifier
-                .clip(CircleShape)
-                .alpha(if (token.isSelected) 0.3F else 0F)
-                .size (animateDpAsState(targetValue =
-                    if (token.isSelected) 450.toDp
-                    else 0.toDp,
-                    animationSpec = tween(500),
-                    label = "shade animation"
-                ).value)
-        ){}
+        Box(modifier = Modifier
+            .clip(CircleShape)
+            .alpha(if (token.isSelected) 0.3F else 0F)
+            .size(animateDpAsState(
+                targetValue = when (token.isSelected) {
+                    true -> 450.toDp
+                    else ->   0.toDp
+                },
+                animationSpec = tween((0.5).seconds),
+                label = "shade animation").value
+            ))
+
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(it.width * 2, it.height * 2)
-            }, animationSpec = tween(500)),
-            exit = slideOut(targetOffset = {
-                IntOffset(it.width * 2, it.height * 2)
-            }, animationSpec = tween(500))
+            enter   = slideIn  (0.5.seconds, factorsXY = 2f to 2f),
+            exit    = slideOut (0.5.seconds, factorsXY = 2f to 2f)
         ) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = "delete",
                 modifier = Modifier
-                    .offset(x = (-150).toDp, y = (-100).toDp)
+                    .offset(
+                        x = (-150).toDp,
+                        y = (-100).toDp
+                    )
                     .clickable { mVM.deleteToken(token.uuid) },
                 tint = MaterialTheme.colorScheme.error
             )
         }
+
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(0, it.height * 2)
-            }, animationSpec = tween(500, 100)),
-            exit = slideOut(targetOffset = {
-                IntOffset(0, it.height * 2)
-            }, animationSpec = tween(400, 100))
+            enter   = slideIn  (0.5.seconds, 0.1.seconds, factorsXY = 0f to 2f),
+            exit    = slideOut (0.4.seconds, 0.1.seconds, factorsXY = 0f to 2f),
         ) {
             Icon(
                 imageVector = Icons.Filled.ContentCopy,
                 contentDescription = "duplicate",
                 modifier = Modifier
-                    .offset(x = 0.toDp, y = (-150).toDp)
+                    .offset(y = (-150).toDp)
                     .clickable { mVM.duplicateToken(token) }
             )
         }
+
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(-it.width * 2, it.height * 2)
-            }, animationSpec = tween(500, 200)),
-            exit = slideOut(targetOffset = {
-                IntOffset(-it.width * 2, it.height * 2)
-            }, animationSpec = tween(500, 200))
+            enter   = slideIn  (0.5.seconds, 0.2.seconds, factorsXY = -2f to 2f),
+            exit    = slideOut (0.5.seconds, 0.2.seconds, factorsXY = -2f to 2f)
         ) {
             Icon(
                 imageVector = Icons.Filled.AvTimer,
@@ -131,30 +152,29 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
 fun SingleToken( mVM: MainViewModel, token: Token) {
 
     Icon(
-        painterResource(token.drawableRes),
-        token.name ?: "",
+        painter = painterResource(token.drawableRes),
+        contentDescription = token.name ?: "",
         tint = Color.Unspecified,
         modifier = Modifier
             .scale((token.scale * token.tokenSize))
             .border(
                 width = animateDpAsState(
-                    targetValue = if (token.isSelected) 20.toDp
-                    else 0.toDp,
-                    animationSpec = tween(800),
-                    label = "border animation"
-                ).value,
+                    targetValue = when (token.isSelected) {
+                        true -> 20.toDp
+                        else ->  0.toDp },
+                    animationSpec = tween(0.8.seconds),
+                    label = "border animation").value,
                 color = MaterialTheme.colorScheme.secondary,
                 shape = CircleShape
             )
             .pointerInput(Unit) {
-
                 detectTransformGestures { _, drag, zoom, _ ->
-                    if(zoom == 1F && token.isSelected){
+                    if (zoom == 1F && token.isSelected) {
                         mVM.updateTokenSize(zoom, token.uuid)
                         Log.d("token zoom", zoom.toString())
+                    } else {
+                        mVM.updateTokenOffset(drag, token.uuid)
                     }
-                    else mVM.updateTokenOffset(drag, token.uuid)
-
                 }
             }
             /*.pointerInput(Unit) {
@@ -163,10 +183,9 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
                 }
             }*/
             .clickable(
-                remember { MutableInteractionSource() },
-                indication = null
-            ) { mVM.makeTokenSelected(token) }
-
+                interactionSource =  remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { mVM.makeTokenSelected(token) })
     )
 }
 

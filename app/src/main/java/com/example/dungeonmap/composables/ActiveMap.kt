@@ -26,41 +26,30 @@ fun ActiveMap(
 
     val noRippleClickable: Modifier = modifier
         .clickable(
-            remember { MutableInteractionSource() },
-            indication = null
-        ) { mVM.makeMapSelected() }
+            interactionSource =  remember { MutableInteractionSource() },
+            indication = null,
+            onClick = { mVM.makeMapSelected() })
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-
-        ) {
-        if ( mVM.mapImageUri == null ) Image(
-            //We use the connectedModifier that was declared inside the TerrainScreen() Composable
-            modifier = noRippleClickable,
-            contentDescription = "Stock Image",
-            painter = painterResource(
-                id = map.value.imageResource
-            )
-        )
-        else AsyncImage(
-            model = mVM.mapImageUri,
-            contentDescription = "Image from gallery",
-            modifier = noRippleClickable
-        )
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    )
-        {
-            Tokens(mVM)
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (mVM.mapImageUri) {
+            null -> Image(
+                    modifier = noRippleClickable,
+                    contentDescription = "Stock Image",
+                    painter = painterResource(map.value.imageResource))
+            else -> AsyncImage(
+                    model = mVM.mapImageUri,
+                    contentDescription = "Image from gallery",
+                    modifier = noRippleClickable)
         }
+    }
 
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+        content = { Tokens(mVM) })
 
-    //Log.d(("Token drawn"), "token scale = ${token.value.scale}   token size = ${token.value.tokenSize}")
+    //Log.d(("Token drawn"), "token scale = ${token.value.scale} token size = ${token.value.tokenSize}")
     TerrainUIOverlay(mVM)
 }
 

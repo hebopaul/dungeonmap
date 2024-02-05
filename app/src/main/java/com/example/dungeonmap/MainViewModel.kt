@@ -33,7 +33,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     val activeTokenList: StateFlow<List<Token>> = _activeTokenList.asStateFlow()
 
 
-    private val stockD20List: List<Int> = getDrawableResourcesIds("d20")
+    private val stockD20List: List<StockImage> = getStockImageList("d20")
     val stockMapsList: List<StockImage> = getStockImageList("map")
     val stockTokensList: List<StockImage> = getStockImageList("token")
     var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
@@ -144,8 +144,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun createToken(drawable: Int? = null) {
-
-        if (_activeTokenList.value.isNotEmpty()){
+        if (_activeTokenList.value.isNotEmpty()) {
             _activeTokenList.value += mutableListOf(
                 Token(
                     drawableRes = drawable ?: R.drawable.minotaur_berserker,

@@ -37,69 +37,64 @@ import com.example.dungeonmap.utilities.toDp
 fun TerrainUIOverlay( mVM: MainViewModel ) {
     val mapState = mVM.backgroundMap.collectAsState()
 
-    val shake = remember { Animatable(0f) }
-    var d20Clicked by remember { mutableStateOf(0L) }
+    val shake      =  remember { Animatable(initialValue = 0f) }
+    var d20Clicked by remember { mutableStateOf(false) }
+
     LaunchedEffect(d20Clicked) {
-        if (d20Clicked != 0L) {
-            for (i in 0..10) {
-                when (i % 2) {
-                    0 -> shake.animateTo(5f, tween(80))
-                    else -> shake.animateTo(-5f, tween(80))
-                }
+        if (d20Clicked) {
+            repeat(10) {
+                val target = if (it % 2 == 0) 5f else -5f
+                shake.animateTo(target, tween(80))
             }
+
             shake.animateTo(0f)
-            d20Clicked = 0L
+            d20Clicked = false
         }
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
-    ){
+    ) {
+        Row(horizontalArrangement = Arrangement.Center) {
 
-        Row (
-            horizontalArrangement = Arrangement.Center
-        ){
-
-            IconButton(
-                onClick = {
-                    mVM.setPickerVisible(true)
-                },
-                content = {
-                    Icon(
-                        imageVector = Icons.Outlined.AddCircleOutline,
-                        contentDescription = "add item",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+            val scaleOffset by animateFloatAsState(
+                targetValue = if (d20Clicked) 2F else 0F,
+                label = "roll_animation"
             )
-            IconButton(
-                onClick = {
-                    d20Clicked = System.currentTimeMillis()
-                },
 
-                content = {
-                    Icon(
-                        painter = painterResource(mVM.randomD20),
-                        contentDescription = "add item",
-                        tint = Color.Unspecified
-                    )
-                },
+            IconButton(
+                onClick = { mVM.setPickerVisible(true) },
+                content = { Icon(
+                    imageVector = Icons.Outlined.AddCircleOutline,
+                    contentDescription = "add item",
+                    tint = MaterialTheme.colorScheme.primary
+                ) }
+            )
+
+            IconButton(
+                onClick = { d20Clicked = true },
+                content = { Icon(
+                    painter = mVM.randomD20.painter,
+                    contentDescription = "add item",
+                    tint = Color.Unspecified
+                ) },
                 modifier = Modifier
-                    .scale(1.5F +  animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value )
-                    .offset(x = 0.toDp, y = -30.toDp)
+                    .scale(1.5F + scaleOffset)
+                    .offset(x = 0.toDp, y = (-30).toDp)
                     .rotate(shake.value)
             )
+
             IconButton(
                 onClick = { mVM.lockedScaleIconClicked() },
-                content = {
-                    Icon(
-                        if (mapState.value.isScaleLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
-                        contentDescription = "Locked scale icon",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                content = { Icon(
+                    when (mapState.value.isScaleLocked) {
+                        true -> Icons.Filled.Lock
+                        else -> Icons.Filled.LockOpen
+                    },
+                    contentDescription = "Locked scale icon",
+                    tint = MaterialTheme.colorScheme.primary
+                ) }
             )
         }
     }

@@ -5,30 +5,29 @@ import com.example.dungeonmap.data.StockImage
 
 
 
+// NK: These methods have to much in common.
+// Could be one? Could the first feed the other?
 fun getStockImageList(prefix: String): List<StockImage> {
-    val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
-    val list: MutableList<StockImage> = mutableListOf()
-    field.forEach {
-
-        if(prefix in it.name) list.add(
-            StockImage (
-                id = it.getInt(it),
-                name = beautifyResName(it.name),
-            )
-        )
-    }
-    return list
+    return Class
+        .forName("com.example.dungeonmap.R\$drawable")
+        .declaredFields
+        .filter { prefix in it.name }
+        .map { StockImage(
+            id = it.getInt(it),
+            name = beautifyResName(it.name)
+        ) }
 }
 
 fun getDrawableResourcesIds(prefix: String): List<Int> {
-    val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
-    val list: MutableList<Int> = mutableListOf()
-     field.forEach { if (prefix in it.name) list.add(it.getInt(it))}
-    return list
+    return Class
+        .forName("com.example.dungeonmap.R\$drawable")
+        .declaredFields
+        .filter { prefix in it.name }
+        .map { it.getInt(it) }
 }
 
 fun beautifyResName(name: String): String =
-    name
-        .split("_")
-        .filter { it.isNotEmpty() && it !in listOf("map", "token") }
-        .joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
+    name.split("_")
+        .filter { it.isNotEmpty() }
+        .filter { it !in listOf("map", "token") }
+        .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }

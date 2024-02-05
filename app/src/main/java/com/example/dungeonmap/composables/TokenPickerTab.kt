@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,22 +26,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
-import com.example.dungeonmap.data.InternalStorageImage
-import com.example.dungeonmap.data.StockImage
+import com.example.dungeonmap.data.ImageRepresentable
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.beautifyResName
+import com.example.dungeonmap.utilities.launchPhotos
 import com.example.dungeonmap.utilities.toDp
 
 
 @Composable
-fun TokenPickerTab(
-    mVM: MainViewModel
-) {
+fun TokenPickerTab(mVM: MainViewModel) {
 
     val tokenPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -55,8 +52,7 @@ fun TokenPickerTab(
             .fillMaxSize(),
         shadowElevation = 15.dp,
         color = MaterialTheme.colorScheme.background
-
-    ){
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,17 +61,32 @@ fun TokenPickerTab(
 
             item {
                 CollapsibleContent(header = "Stock") {
-                    TokenList(mVM)
+                    // NK: This generalization could be
+                    // propagated into the CollapsibleContent
+                    // to create a CollapsibleList that gets
+                    // title, items, and itemView
+                    TokenList(items = mVM.stockTokensList, onDelete = null) {
+                        mVM.createToken(it.id)
+                        mVM.setPickerVisible(false)
+                    }
                 }
             }
             item {
                 CollapsibleContent(header = "User Added") {
-                    TokenList(mVM, true)
+                    TokenList(
+                        items = mVM.userAddedTokensList,
+                        onDelete = {
+                            mVM.fileHandler.deleteImageFromInternalStorage(it.uri)
+                            mVM.updateUserAddedTokensList()
+                        },
+                        onClick = {
+                            mVM.setPickerVisible(false)
+                        })
                 }
             }
             item {
                 Spacer(modifier = Modifier.height(100.toDp))
-                ImportItemIcon(tokenPickerLauncher)
+                ImportItemIcon(tokenPickerLauncher::launchPhotos)
                 Spacer(modifier = Modifier.height(100.toDp))
             }
 
@@ -85,133 +96,68 @@ fun TokenPickerTab(
 }
 
 @Composable
-fun TokenList(
-    mVM: MainViewModel
+fun <ImageType: ImageRepresentable> TokenList(
+    items: List<ImageType>,
+    onDelete : ((ImageType) -> Unit)?,
+    onClick  :  (ImageType) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-    ){
-        mVM.stockTokensList.forEach{ token ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(320.toDp)
-                    .padding(vertical = 6.toDp),
-                shadowElevation = 3.dp,
-                color = MaterialTheme.colorScheme.background
-            ){
-                TokenRowItem(mVM, token )
-            }
+    Column(Modifier.fillMaxSize()) {
+        items.forEach { token ->
+            TokenRowItem(
+                token = token,
+                onDelete = onDelete?.let { { it.invoke(token) } },
+                onClick =  { onClick(token) }
+            )
         }
     }
 }
 
 @Composable
-fun TokenList(
-    mVM: MainViewModel,
-    isUserAdded: Boolean = false
+fun ColumnScope.TokenRowItem(
+    token: ImageRepresentable, // NK: The original was nullable. Why?
+    onDelete: (() -> Unit)? = null,
+    onClick: () -> Unit,
 ) {
-
-    Column(
+    Surface(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxWidth()
+            .height(320.toDp)
+            .padding(vertical = 6.toDp),
+        shadowElevation = 3.dp,
+        color = MaterialTheme.colorScheme.background
     ) {
-        mVM.userAddedTokensList.forEach { token ->
-            Surface(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.toDp, vertical = 10.toDp)
+                .clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Image(
+                painter = token.painter,
+                contentDescription = token.name,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(320.toDp)
-                    .padding(vertical = 6.toDp),
-                shadowElevation = 3.dp,
-                color = MaterialTheme.colorScheme.background
-            ) {
-                TokenRowItem(mVM, token)
+                    .fillMaxHeight(0.97F)
+                    .padding(start = 15.toDp)
+            )
+            Spacer(Modifier.width(30.toDp))
+
+            Text(
+                text = beautifyResName(token.name),
+                fontSize = 20.sp,
+                fontFamily = arsenalFamily
+            )
+
+            onDelete?.let { deleteAction ->
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Delete file",
+                    modifier = Modifier
+                        .scale(1.5f) // NK: Maybe with size modifier?
+                        .clickable(onClick = deleteAction)
+                )
             }
         }
-    }
-}
-
-
-
-@Composable
-fun TokenRowItem(
-    mVM: MainViewModel,
-    token: StockImage?
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.toDp, vertical = 10.toDp)
-            .clickable {
-                mVM.createToken(token!!.id)
-                mVM.setPickerVisible(false)
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
-
-        ){
-
-        Icon(
-            painter = painterResource(token!!.id),
-            contentDescription = token.name,
-            tint = Color.Unspecified,
-            modifier = Modifier
-                .fillMaxHeight(0.97F)
-                .padding(start = 15.toDp)
-        )
-        Spacer(Modifier.width(30.toDp))
-
-        Text(
-            text = token.name ,
-            fontSize = 20.sp,
-            fontFamily = arsenalFamily
-        )
-    }
-}
-
-@Composable
-fun TokenRowItem(
-    mVM: MainViewModel,
-    token: InternalStorageImage?
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.toDp, vertical = 10.toDp)
-            .clickable {
-                //TODO: mVM.createToken(token.image)
-                mVM.setPickerVisible(false)
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-
-        ){
-
-        Image(
-            painter = token!!.painter,
-            contentDescription = token.name,
-            modifier = Modifier
-                .fillMaxHeight(0.97F)
-                .padding(start = 15.toDp)
-        )
-        Spacer(Modifier.width(30.toDp))
-
-        Text(
-            text = beautifyResName(token.name) ,
-            fontSize = 20.sp,
-            fontFamily = arsenalFamily
-        )
-
-        Icon(
-            imageVector = Icons.Filled.Delete,
-            contentDescription = "Delete file",
-            modifier = Modifier
-                .scale(1.5f)
-                .clickable {
-                    mVM.fileHandler.deleteImageFromInternalStorage(token.uri)
-                    mVM.updateUserAddedTokensList()
-                }
-        )
     }
 }
