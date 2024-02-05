@@ -21,12 +21,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -38,7 +39,7 @@ import com.example.dungeonmap.utilities.toDp
 
 @Composable
 fun Tokens(mVM: MainViewModel) {
-    val tokenList = mVM.activeTokenList
+    val tokenList by mVM.activeTokenList.collectAsState(initial = listOf(Token()) )
 
     tokenList.forEach { token ->
         TokenBox( mVM, token )
@@ -50,7 +51,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
     Box(
         modifier = Modifier
             .size(500.toDp)
-            .scale((mVM.globalScale * token.tokenSize))
+            //.scale((mVM.globalScale * token.tokenSize))
             .offset(
                 x = token.position.x.toDp,
                 y = token.position.y.toDp
@@ -62,12 +63,15 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
             modifier = Modifier
                 .clip(CircleShape)
                 .alpha(if (token.isSelected) 0.3F else 0F)
-                .size (animateDpAsState(targetValue =
-                    if (token.isSelected) 450.toDp
-                    else 0.toDp,
-                    animationSpec = tween(500),
-                    label = "shade animation"
-                ).value)
+                .size(
+                    animateDpAsState(
+                        targetValue =
+                        if (token.isSelected) 450.toDp
+                        else 0.toDp,
+                        animationSpec = tween(500),
+                        label = "shade animation"
+                    ).value
+                )
         ){}
         AnimatedVisibility(
             visible = token.isSelected,
@@ -147,7 +151,7 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
             .pointerInput(Unit) {
 
                 detectTransformGestures { _, drag, zoom, _ ->
-                    if(zoom == 1F) mVM.updateTokenOffset(drag, token.uuid)
+                    /*if (zoom == 1F) */mVM.updateTokenPosition(drag, token.uuid)
                     println("zoom = $zoom")
                 }
             }

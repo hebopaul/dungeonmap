@@ -29,7 +29,7 @@ fun TerrainScreen(mVM: MainViewModel) {
             detectTransformGestures { _, drag, zoom, _ ->
                 if (zoom == 1F) mVM.updateMapPosition(drag)
                 if (map.isSelected){
-                    mVM.updateMapScale(zoom)
+                    mVM.updateGlobalScale(zoom)
                 }
                 else {
                     mVM.updateTokenSize(zoom, mVM.getSelectedTokenUuid())
