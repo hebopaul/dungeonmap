@@ -7,6 +7,7 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,15 +37,18 @@ import androidx.compose.ui.unit.IntOffset
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.utilities.toDp
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.forEach
 
 
 @Composable
 fun Tokens(mVM: MainViewModel) {
-    val tokenList by mVM.activeTokenList.collectAsState(initial = listOf(Token()) )
+    val tokenList = mVM.activeTokenList.collectAsState(initial = listOf())
 
-    tokenList.forEach { token ->
-        TokenBox( mVM, token )
+    tokenList.value.forEach { token ->
+        TokenBox(mVM, token)
     }
+
 }
 
 @Composable
@@ -149,10 +154,9 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
                 shape = CircleShape
             )
             .pointerInput(Unit) {
-
-                detectTransformGestures { _, drag, zoom, _ ->
-                    /*if (zoom == 1F) */mVM.updateTokenPosition(drag, token.uuid)
-                    println("zoom = $zoom")
+                detectDragGestures { _, drag ->
+                    mVM.updateTokenPosition(drag, token.uuid)
+                    println("token position = ${token.position}")
                 }
             }
             .clickable(

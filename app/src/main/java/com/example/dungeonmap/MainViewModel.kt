@@ -50,7 +50,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     private var _activeTokenList by mutableStateOf(listOf(Token()))
 
 
-    val activeTokenList = snapshotFlow<List<Token>> {
+    val activeTokenList = snapshotFlow{
         _activeTokenList.map { token ->
             token.copy(
                 position = globalPosition + token.position * globalScale
@@ -76,11 +76,17 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     //This function is called when the user drags the token
     fun updateTokenPosition(newPosition: Offset, uuid: UUID) {
-        _activeTokenList.forEachIndexed { index, token ->
+        _activeTokenList.forEachIndexed { i, token ->
             if (token.uuid == uuid) {
-                _activeTokenList[index].position = (token.position + newPosition) * globalScale
+                _activeTokenList[i].position = (globalPosition + newPosition) * globalScale
+                Log.d("updateTokenPosition",
+                    "newPosition: $newPosition " +
+                            "globalPos: $globalPosition, " +
+                            "globalScale: $globalScale"
+                )
                 return@forEachIndexed
             }
+
         }
     }
 
