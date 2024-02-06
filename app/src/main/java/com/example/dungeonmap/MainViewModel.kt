@@ -3,6 +3,7 @@ package com.example.dungeonmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -12,18 +13,20 @@ import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Position
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
+import com.example.dungeonmap.data.coerceAtMostScalable
 import com.example.dungeonmap.data.plus
 import com.example.dungeonmap.data.times
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getStockImageList
 import java.util.UUID
+import kotlin.properties.Delegates
 import kotlin.random.Random
 
 const val MIN_SCALE: Float = 1F
 const val MAX_SCALE: Float = 10F
-
-
+const val X_BOUNDARY: Float = 350F
+const val Y_BOUNDARY: Float = 500F
 
 class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
@@ -33,12 +36,13 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     val stockTokensList: List<StockImage> = getStockImageList("token")
 
 
-
     //This is where we keep our global variables
     var globalPosition by mutableStateOf(Position(0F, 0F))
         private set
-    var globalScale by mutableStateOf(1F)
-        private set
+
+    var globalScale by mutableFloatStateOf(1F)
+    
+
     var isPickerVisible by mutableStateOf(false)
     var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
         private set
@@ -51,8 +55,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
 
     val activeTokenList = snapshotFlow{
-        _activeTokenList.map { token ->
-            token.copy(
+        _activeTokenList.map { token -> token.copy(
                 position = globalPosition + token.position * globalScale
             )
         }
@@ -61,50 +64,39 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     val randomD20 = stockD20List[Random.nextInt(stockD20List.size-1)]
 
 
-
-    //Functions to update the BackgroundMap and Token position
     fun updateMapPosition(newOffset: Offset) {
-        globalPosition = globalPosition + newOffset
+        globalPosition += newOffset
     }
-    
 
     //This function is called when the user pinches to zoom in or out
     fun updateGlobalScale(scaleChange: Float) {
-        globalScale = globalScale * scaleChange
-
+        globalScale = (globalScale * scaleChange).coerceIn(MIN_SCALE, MAX_SCALE)
+        globalPosition = (globalPosition * scaleChange).coerceAtMostScalable(
+                                                            X_BOUNDARY, Y_BOUNDARY, globalScale
+                                                        )
     }
 
     //This function is called when the user drags the token
     fun updateTokenPosition(newPosition: Offset, uuid: UUID) {
-        _activeTokenList.forEachIndexed { i, token ->
-            if (token.uuid == uuid) {
-                _activeTokenList[i].position = (globalPosition + newPosition) * globalScale
-                Log.d("updateTokenPosition",
-                    "newPosition: $newPosition " +
-                            "globalPos: $globalPosition, " +
-                            "globalScale: $globalScale"
+        _activeTokenList = _activeTokenList.map { token ->
+            if (token.uuid == uuid) token.copy(
+                    position = token.position + newPosition / globalScale
                 )
-                return@forEachIndexed
-            }
-
+            else token
         }
     }
 
-
     fun updateTokenSize(sizeChange: Float, uuid: UUID) {
         _activeTokenList = _activeTokenList.mapIndexed { i, it ->
-            if (it.uuid == uuid)
-                it.copy(
-                    tokenSize = (_activeTokenList[i].tokenSize * ( sizeChange ).coerceIn(0.04F, 2F))
-                )
+            if (it.uuid == uuid) it.copy(
+                tokenSize = (_activeTokenList[i].tokenSize * ( sizeChange ).coerceIn(0.04F, 2F))
+            )
             else it
         }
     }
 
     fun createToken(drawable: Int? = null) {
-
-        if (_activeTokenList.isNotEmpty()){
-            _activeTokenList += mutableListOf(
+        if (_activeTokenList.isNotEmpty() ) { _activeTokenList += mutableListOf(
                 Token(
                     drawableRes = drawable ?: R.drawable.minotaur_berserker,
                     tokenSize = _activeTokenList.last().tokenSize,
@@ -112,7 +104,6 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 )
             )
         } else _activeTokenList = mutableListOf(Token(drawable!!))
-
     }
 
     fun deleteToken(uuid: UUID) {
@@ -131,7 +122,6 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 token
         }
     }
-
 
     fun updateMapImageUri (uri: Uri? ) {
         backgroundMap.uri = uri
@@ -156,30 +146,16 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun makeMapSelected () {
-        backgroundMap = backgroundMap.copy(
-            isSelected = true
-        )
-        _activeTokenList = _activeTokenList.map {
-            it.copy(
-                isSelected = false
-            )
-        }
+        backgroundMap = backgroundMap.copy( isSelected = true )
+        _activeTokenList = _activeTokenList.map { it.copy( isSelected = false ) }
     }
 
     fun makeTokenSelected (selectedToken: Token) {
         _activeTokenList = _activeTokenList.mapIndexed { index, token ->
-            if (token.uuid == selectedToken.uuid)
-                token.copy(
-                    isSelected = true
-                )
-            else
-                token.copy(
-                    isSelected = false
-                )
+            if (token.uuid == selectedToken.uuid) token.copy( isSelected = true )
+            else token.copy( isSelected = false )
         }
-        backgroundMap = backgroundMap.copy(
-            isSelected = false
-        )
+        backgroundMap = backgroundMap.copy( isSelected = false )
     }
 
     fun getSelectedTokenUuid (): UUID {
@@ -187,8 +163,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun everyoneRollForInitiative () {
-        _activeTokenList.map {
-            it.copy(
+        _activeTokenList.map {it.copy(
                  currentInitiave = Random.nextInt(1, 20) + it.initiativeModifier
             )
         }

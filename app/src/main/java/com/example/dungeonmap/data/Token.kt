@@ -14,10 +14,6 @@ data class Token (
     val initiativeModifier: Int = 0,
     val uuid: UUID = UUID.randomUUID(),
     var position: Position = Position( 0F, 0F )
-) {
-    fun moveBy( position: Position) {
-        this.position += position
-    }
-}
+)
 
 

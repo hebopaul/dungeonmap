@@ -43,10 +43,8 @@ import kotlinx.coroutines.flow.forEach
 
 @Composable
 fun Tokens(mVM: MainViewModel) {
-    val tokenList = mVM.activeTokenList.collectAsState(initial = listOf())
-
-    tokenList.value.forEach { token ->
-        TokenBox(mVM, token)
+    mVM.activeTokenList.collectAsState( initial = null).value?.forEach {
+        TokenBox(mVM, it)
     }
 
 }
@@ -156,7 +154,6 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
             .pointerInput(Unit) {
                 detectDragGestures { _, drag ->
                     mVM.updateTokenPosition(drag, token.uuid)
-                    println("token position = ${token.position}")
                 }
             }
             .clickable(
