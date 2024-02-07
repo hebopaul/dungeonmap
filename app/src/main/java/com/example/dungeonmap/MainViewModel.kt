@@ -13,14 +13,12 @@ import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Position
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
-import com.example.dungeonmap.data.coerceAtMostScalable
 import com.example.dungeonmap.data.plus
 import com.example.dungeonmap.data.times
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getStockImageList
 import java.util.UUID
-import kotlin.properties.Delegates
 import kotlin.random.Random
 
 const val MIN_SCALE: Float = 1F
@@ -56,7 +54,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     val activeTokenList = snapshotFlow{
         _activeTokenList.map { token -> token.copy(
-                position = (globalPosition + (token.position * globalScale) )
+                position = globalPosition + (token.position * globalScale),
             )
         }
     }
