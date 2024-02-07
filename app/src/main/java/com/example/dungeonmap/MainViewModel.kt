@@ -56,7 +56,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     val activeTokenList = snapshotFlow{
         _activeTokenList.map { token -> token.copy(
-                position = globalPosition + token.position * globalScale
+                position = (globalPosition + (token.position * globalScale) )
             )
         }
     }
@@ -71,13 +71,15 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     //This function is called when the user pinches to zoom in or out
     fun updateGlobalScale(scaleChange: Float) {
         globalScale = (globalScale * scaleChange).coerceIn(MIN_SCALE, MAX_SCALE)
-        globalPosition = (globalPosition * scaleChange).coerceAtMostScalable(
+        globalPosition = (globalPosition * scaleChange)/*.coerceAtMostScalable(
                                                             X_BOUNDARY, Y_BOUNDARY, globalScale
-                                                        )
+                                                        )*/
+        Log.d("Moved token","globalScale:${globalScale} "+"global: $globalPosition "+"token: ${_activeTokenList[0].position}")
     }
 
     //This function is called when the user drags the token
     fun updateTokenPosition(newPosition: Offset, uuid: UUID) {
+        Log.d("Moved token","globalScale:${globalScale} "+"global: $globalPosition "+"token: ${_activeTokenList[0].position}")
         _activeTokenList = _activeTokenList.map { token ->
             if (token.uuid == uuid) token.copy(
                     position = token.position + newPosition / globalScale
@@ -88,9 +90,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     fun updateTokenSize(sizeChange: Float, uuid: UUID) {
         _activeTokenList = _activeTokenList.mapIndexed { i, it ->
-            if (it.uuid == uuid) it.copy(
-                tokenSize = (_activeTokenList[i].tokenSize * ( sizeChange ).coerceIn(0.04F, 2F))
-            )
+            if (it.uuid == uuid) {
+                Log.d("updateTokenSize", "token size:${it.size}")
+                it.copy( size = (_activeTokenList[i].size * (sizeChange).coerceIn(0.04F, 2F)) )
+            }
             else it
         }
     }
@@ -99,7 +102,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         if (_activeTokenList.isNotEmpty() ) { _activeTokenList += mutableListOf(
                 Token(
                     drawableRes = drawable ?: R.drawable.minotaur_berserker,
-                    tokenSize = _activeTokenList.last().tokenSize,
+                    size = _activeTokenList.last().size,
                     position = (_activeTokenList.last().position + Offset(10f, 10f))
                 )
             )
@@ -148,6 +151,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     fun makeMapSelected () {
         backgroundMap = backgroundMap.copy( isSelected = true )
         _activeTokenList = _activeTokenList.map { it.copy( isSelected = false ) }
+        Log.d("Selection", "isMapSelected: ${backgroundMap.isSelected}, isTokenSelected: ${_activeTokenList[0].isSelected}")
     }
 
     fun makeTokenSelected (selectedToken: Token) {
@@ -156,6 +160,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
             else token.copy( isSelected = false )
         }
         backgroundMap = backgroundMap.copy( isSelected = false )
+        Log.d("Selection", "isMapSelected: ${backgroundMap.isSelected}, isTokenSelected: ${_activeTokenList[0].isSelected}")
     }
 
     fun getSelectedTokenUuid (): UUID {

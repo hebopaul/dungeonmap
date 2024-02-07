@@ -78,12 +78,10 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         ){}
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(it.width * 2, it.height * 2)
-            }, animationSpec = tween(500)),
-            exit = slideOut(targetOffset = {
-                IntOffset(it.width * 2, it.height * 2)
-            }, animationSpec = tween(500))
+            enter = slideIn(initialOffset = {IntOffset(it.width * 2, it.height * 2)},
+            animationSpec = tween(500)),
+            exit = slideOut(targetOffset = {IntOffset(it.width * 2, it.height * 2)},
+            animationSpec = tween(500))
         ) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
@@ -96,12 +94,10 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         }
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(0, it.height * 2)
-            }, animationSpec = tween(500, 100)),
-            exit = slideOut(targetOffset = {
-                IntOffset(0, it.height * 2)
-            }, animationSpec = tween(400, 100))
+            enter = slideIn(initialOffset = {IntOffset(0, it.height * 2)},
+            animationSpec = tween(500, 100)),
+            exit = slideOut(targetOffset = {IntOffset(0, it.height * 2)},
+            animationSpec = tween(400, 100))
         ) {
             Icon(
                 imageVector = Icons.Filled.ContentCopy,
@@ -113,12 +109,10 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         }
         AnimatedVisibility(
             visible = token.isSelected,
-            enter = slideIn(initialOffset = {
-                IntOffset(-it.width * 2, it.height * 2)
-            }, animationSpec = tween(500, 200)),
-            exit = slideOut(targetOffset = {
-                IntOffset(-it.width * 2, it.height * 2)
-            }, animationSpec = tween(500, 200))
+            enter = slideIn(initialOffset = {IntOffset(-it.width * 2, it.height * 2)},
+            animationSpec = tween(500, 200)),
+            exit = slideOut(targetOffset = {IntOffset(-it.width * 2, it.height * 2)},
+            animationSpec = tween(500, 200))
         ) {
             Icon(
                 imageVector = Icons.Filled.AvTimer,
@@ -143,7 +137,7 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
         modifier = Modifier
             .border(
                 width = animateDpAsState(
-                    targetValue = if (token.isSelected) 20.toDp
+                    targetValue = if (token.isSelected) 14.toDp
                     else 0.toDp,
                     animationSpec = tween(800),
                     label = "border animation"

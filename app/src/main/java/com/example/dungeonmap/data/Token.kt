@@ -9,7 +9,7 @@ data class Token (
     val name: String? = null,
     val isEnemy: Boolean = false,
     val isSelected: Boolean = false,
-    val tokenSize: Float = 0.5F,
+    val size: Float = 1F,
     val currentInitiave: Int = 0,
     val initiativeModifier: Int = 0,
     val uuid: UUID = UUID.randomUUID(),
