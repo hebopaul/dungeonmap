@@ -1,8 +1,8 @@
-package com.example.dungeonmap.data
+package com.example.dungeonmap
 
 import androidx.compose.ui.geometry.Offset
 
-data class Position(
+class Position(
     val x: Float,
     val y: Float
 )

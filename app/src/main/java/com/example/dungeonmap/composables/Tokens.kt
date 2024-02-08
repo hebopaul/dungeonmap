@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -45,7 +44,7 @@ fun Tokens(mVM: MainViewModel) {
     }
 
 }
-val tokenBoxSize = 300
+val tokenBoxSize = 200
 @Composable
 fun TokenBox (mVM: MainViewModel, token: Token) {
     Box(
@@ -61,8 +60,8 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
     ) {
         val boxAnim by  animateDpAsState( targetValue =
             if (token.size < 0.4F)
-                    (tokenBoxSize * mVM.globalScale).toDp
-            else (tokenBoxSize/0.4F * token.size * mVM.globalScale).toDp, label = ""
+                    (tokenBoxSize /* mVM.globalScale*/).toDp
+            else (tokenBoxSize/0.4F * token.size /* mVM.globalScale*/).toDp, label = ""
         )
 
         Surface(
@@ -137,7 +136,7 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
         token.name ?: "",
         tint = Color.Unspecified,
         modifier = Modifier
-            .scale((mVM.globalScale * token.size))
+            .size((mVM.globalScale * token.size * 100).toDp)
             .border(
                 width = animateDpAsState(
                     targetValue = if (token.isSelected) 14.toDp else 0.toDp,

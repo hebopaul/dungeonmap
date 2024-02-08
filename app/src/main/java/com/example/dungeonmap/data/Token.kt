@@ -1,5 +1,6 @@
 package com.example.dungeonmap.data
 
+import com.example.dungeonmap.Position
 import com.example.dungeonmap.R
 import java.util.UUID
 

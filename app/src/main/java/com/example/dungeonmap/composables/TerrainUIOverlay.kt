@@ -60,7 +60,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         Surface(
             color = Color.Black,
             modifier = Modifier
-                .offset( 0.toDp, 800.toDp )
+                .offset( 0.toDp, 750.toDp )
                 .size(1000.toDp)
                 .clip(CircleShape)
                 .alpha(0.3F)

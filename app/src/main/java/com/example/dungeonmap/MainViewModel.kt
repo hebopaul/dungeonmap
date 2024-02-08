@@ -10,11 +10,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
-import com.example.dungeonmap.data.Position
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
-import com.example.dungeonmap.data.plus
-import com.example.dungeonmap.data.times
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getStockImageList
