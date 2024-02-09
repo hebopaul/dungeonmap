@@ -52,7 +52,12 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
             d20Clicked = 0L
         }
     }
-
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        InitiativeTracker(mVM)
+    }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
@@ -60,7 +65,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         Surface(
             color = Color.Black,
             modifier = Modifier
-                .offset( 0.toDp, 750.toDp )
+                .offset(0.toDp, 750.toDp)
                 .size(1000.toDp)
                 .clip(CircleShape)
                 .alpha(0.3F)
@@ -79,7 +84,10 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                 }
             )
             IconButton(
-                onClick = { d20Clicked = System.currentTimeMillis() },
+                onClick = {
+                    d20Clicked = System.currentTimeMillis()
+                    mVM.rollForInitiative()
+                },
                 content = {
                     Icon(
                         painter = painterResource(mVM.randomD20),
@@ -88,7 +96,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                     )
                 },
                 modifier = Modifier
-                    .scale(1.5F +  animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value )
+                    .scale(1.5F + animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value)
                     .offset(x = 0.toDp, y = -30.toDp)
                     .rotate(shake.value)
             )

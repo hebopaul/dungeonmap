@@ -13,6 +13,9 @@ val arsenalFamily: FontFamily = FontFamily(
     Font(R.font.arsenal, FontWeight.Normal, FontStyle.Normal),
     Font(R.font.arsenal_bold, FontWeight.Bold, FontStyle.Normal)
 )
+val celestia: FontFamily = FontFamily(
+    Font(R.font.celestia_antigua_std_reg, FontWeight.Normal, FontStyle.Normal)
+)
 
 // Set of Material typography styles to start with
 val Typography = Typography(

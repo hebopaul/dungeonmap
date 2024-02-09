@@ -27,6 +27,12 @@ fun getDrawableResourcesIds(prefix: String): List<Int> {
     return list
 }
 
+fun getNameFromResId(resId: Int): String {
+    val field = Class.forName("com.example.dungeonmap.R\$drawable").declaredFields
+    return beautifyResName( field.find { it.getInt(it) == resId }?.name.toString() )
+}
+
+
 fun beautifyResName(name: String): String =
     name
         .split("_")

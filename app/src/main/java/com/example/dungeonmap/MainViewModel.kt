@@ -14,6 +14,7 @@ import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
+import com.example.dungeonmap.utilities.getNameFromResId
 import com.example.dungeonmap.utilities.getStockImageList
 import java.util.UUID
 import kotlin.random.Random
@@ -45,8 +46,11 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         private set
     var backgroundMap by mutableStateOf(BackgroundMap())
         private set
+    var _activeTokenList by mutableStateOf(listOf(Token()))
+        private set
 
-    private var _activeTokenList by mutableStateOf(listOf(Token()))
+    var turnsList: UUID? by mutableStateOf(null)
+        private set
 
 
     val activeTokenList = snapshotFlow{
@@ -98,7 +102,8 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 Token(
                     drawableRes = drawable ?: R.drawable.minotaur_berserker,
                     size = _activeTokenList.last().size,
-                    position = (_activeTokenList.last().position + Offset(10f, 10f))
+                    position = (_activeTokenList.last().position + Offset(10f, 10f)),
+                    name = getNameFromResId(drawable!!)
                 )
             )
         } else _activeTokenList = mutableListOf(Token(drawable!!))
@@ -115,7 +120,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     fun setTokenInitiative (number: Int, uuid: UUID) {
         _activeTokenList = _activeTokenList.mapIndexed { index, token ->
             if (token.uuid == uuid)
-                token.copy(currentInitiave = number)
+                token.copy(currentInitiative = number)
             else
                 token
         }
@@ -162,13 +167,16 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         return _activeTokenList.find { it.isSelected }?.uuid?: UUID.randomUUID()
     }
 
-    fun everyoneRollForInitiative () {
-        _activeTokenList.map {it.copy(
-                 currentInitiave = Random.nextInt(1, 20) + it.initiativeModifier
+    fun rollForInitiative () {
+        _activeTokenList = _activeTokenList.map {
+            val dieCast = Random.nextInt(1, 20)
+            println("Rolling for: $dieCast")
+            it.copy(
+                 currentInitiative =  dieCast + it.initiativeModifier
             )
-        }
+        }.sortedByDescending { it.currentInitiative + (it.initiativeModifier/10F) }
         _activeTokenList.forEach {
-            Log.d("Initiative", "${it.name}: ${it.currentInitiave}")
+            Log.d("Initiative", "${it.name}: ${it.currentInitiative}")
         }
     }
 

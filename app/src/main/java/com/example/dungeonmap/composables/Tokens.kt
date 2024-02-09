@@ -59,9 +59,8 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         contentAlignment = Alignment.Center
     ) {
         val boxAnim by  animateDpAsState( targetValue =
-            if (token.size < 0.4F)
-                    (tokenBoxSize /* mVM.globalScale*/).toDp
-            else (tokenBoxSize/0.4F * token.size /* mVM.globalScale*/).toDp, label = ""
+            if (token.size < 0.4F) (tokenBoxSize * mVM.globalScale).toDp
+            else (tokenBoxSize/0.4F * token.size * mVM.globalScale).toDp, label = ""
         )
 
         Surface(
@@ -133,7 +132,7 @@ fun SingleToken( mVM: MainViewModel, token: Token) {
 
     Icon(
         painterResource(token.drawableRes),
-        token.name ?: "",
+        token.name,
         tint = Color.Unspecified,
         modifier = Modifier
             .size((mVM.globalScale * token.size * 100).toDp)

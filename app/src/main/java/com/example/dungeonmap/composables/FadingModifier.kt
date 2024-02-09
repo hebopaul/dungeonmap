@@ -1,6 +1,5 @@
 package com.example.dungeonmap.composables
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -8,9 +7,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
-import com.example.dungeonmap.utilities.toDp
-import kotlin.math.min
 
 @Composable
 fun Modifier.fadingEdges(
@@ -23,7 +19,6 @@ fun Modifier.fadingEdges(
             drawContent()
 
             val startColors = listOf(Color.Transparent, Color.Black)
-            //val startX = scrollState.value.toFloat()
             drawRect(
                 brush = Brush.horizontalGradient(
                     colors = startColors,
