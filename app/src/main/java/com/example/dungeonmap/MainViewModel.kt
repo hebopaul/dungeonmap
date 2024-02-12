@@ -26,6 +26,8 @@ const val Y_BOUNDARY: Float = 500F
 
 class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
+
+
     //Loading all of the image resources we are going to need
     private val stockD20List: List<Int> = getDrawableResourcesIds("d20")
     val stockMapsList: List<StockImage> = getStockImageList("map")
@@ -48,9 +50,11 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         private set
     var _activeTokenList by mutableStateOf(listOf(Token()))
         private set
-
-    var turnsList: UUID? by mutableStateOf(null)
+    var battleIsOngoing by mutableStateOf(false)
         private set
+    var currentToken by mutableStateOf(0)
+        private set
+
 
 
     val activeTokenList = snapshotFlow{
@@ -164,7 +168,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun getSelectedTokenUuid (): UUID {
-        return _activeTokenList.find { it.isSelected }?.uuid?: UUID.randomUUID()
+        return _activeTokenList.find { it.isSelected }!!.uuid
     }
 
     fun rollForInitiative () {
@@ -177,6 +181,28 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         }.sortedByDescending { it.currentInitiative + (it.initiativeModifier/10F) }
         _activeTokenList.forEach {
             Log.d("Initiative", "${it.name}: ${it.currentInitiative}")
+        }
+        //We start with the second occurrence of the token with the highest initiative
+        currentToken = _activeTokenList.size
+        battleIsOngoing = true
+
+    }
+
+    fun nextTokenClicked (endOfList: Boolean) {
+        when (endOfList) {
+            false -> currentToken++
+            true -> currentToken %= _activeTokenList.size
+        }
+    }
+
+    fun endBattle () {
+        battleIsOngoing = false
+    }
+
+    fun previousTokenClicked(startOfList: Boolean) {
+        when (startOfList) {
+            false -> currentToken--
+            true -> currentToken += _activeTokenList.size
         }
     }
 

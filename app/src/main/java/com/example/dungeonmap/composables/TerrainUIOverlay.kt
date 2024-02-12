@@ -1,5 +1,6 @@
 package com.example.dungeonmap.composables
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -56,7 +57,9 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
-        InitiativeTracker(mVM)
+        AnimatedVisibility(visible = mVM.battleIsOngoing) {
+            InitiativeTracker(mVM)
+        }
     }
     Box(
         modifier = Modifier.fillMaxSize(),

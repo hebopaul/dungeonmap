@@ -10,8 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AvTimer
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,8 +36,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.Token
+import com.example.dungeonmap.ui.theme.celestia
 import com.example.dungeonmap.utilities.toDp
 
 
@@ -124,6 +130,18 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
         }
 
         SingleToken( mVM, token)
+        Text(
+            token.name,
+            color = Color.White,
+            fontSize = 15.sp,
+            fontFamily = celestia,
+            modifier = Modifier
+                .width((300 * 0.8F).toDp)
+                .height(90.toDp)
+                .offset(x = 15.toDp, y = boxAnim* 0.1F)
+                .padding(top = 25.toDp, bottom = 3.toDp, start = 25.toDp)
+                .align(Alignment.Center)
+        )
     }
 }
 
