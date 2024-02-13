@@ -25,7 +25,6 @@ import com.example.dungeonmap.utilities.toDp
 @Composable
 fun TerrainScreen(mVM: MainViewModel) {
 
-    val map = mVM.backgroundMap
 
     val myModifier  = Modifier
         .fillMaxSize()

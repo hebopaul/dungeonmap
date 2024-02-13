@@ -3,7 +3,6 @@ package com.example.dungeonmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dungeonmap.composables.TerrainScreen
 import com.example.dungeonmap.storage.FileHandler
@@ -22,7 +21,7 @@ class MainActivity : ComponentActivity() {
                 val viewModelFactory = MainViewModelFactory( fileHandler )
                 val mVM = viewModel<MainViewModel>(factory = viewModelFactory)
 
-                DungeonMapApp(mVM)
+                TerrainScreen(mVM)
 
             }
         }
@@ -32,8 +31,3 @@ class MainActivity : ComponentActivity() {
 
 }
 
-
-@Composable
-fun DungeonMapApp(mVM: MainViewModel) {
-    TerrainScreen(mVM)
-}
