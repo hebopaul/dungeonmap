@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
+import com.example.dungeonmap.data.VisibleEffect
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getNameFromResId
@@ -29,8 +30,8 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
 
     //Loading all of the image resources we are going to need
-    private val stockD20List: List<Int> = getDrawableResourcesIds("d20")
     val stockMapsList: List<StockImage> = getStockImageList("map")
+    private val stockD20List: List<Int> = getDrawableResourcesIds("d20")
     val stockTokensList: List<StockImage> = getStockImageList("token")
 
 
@@ -39,7 +40,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         private set
 
     var globalScale by mutableFloatStateOf(1F)
-    
+
 
     var isPickerVisible by mutableStateOf(false)
     var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
@@ -54,8 +55,16 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         private set
     var currentToken by mutableStateOf(0)
         private set
+    val _visibleEffects by mutableStateOf(listOf(VisibleEffect()))
 
-
+    val visibleEffects = snapshotFlow {
+        _visibleEffects.map { token -> token.copy(
+            position = Position(
+                x = token.position.x * globalScale,
+                y = token.position.y * globalScale
+            )
+        )}
+    }
 
     val activeTokenList = snapshotFlow{
         _activeTokenList.map { token -> token.copy(

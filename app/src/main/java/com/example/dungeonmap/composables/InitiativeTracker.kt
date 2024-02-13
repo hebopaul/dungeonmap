@@ -24,6 +24,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
+import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.ui.theme.celestia
 import com.example.dungeonmap.utilities.toDp
 import kotlinx.coroutines.launch
@@ -43,7 +46,8 @@ import kotlinx.coroutines.launch
 fun InitiativeTracker(mVM: MainViewModel) {
 
     val tokenList = mVM._activeTokenList
-    val listSize = 100
+    val listSize = 50
+    val currentToken = mVM.currentToken
     Column{
         val listState = rememberLazyListState()
 
@@ -67,16 +71,15 @@ fun InitiativeTracker(mVM: MainViewModel) {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         val i = index % tokenList.size
+                        val currentTokenAnim = animateFloatAsState(
+                            if (index == currentToken) 0.8F
+                            else 0.6F
+                        )
                         Icon(
                             painterResource(tokenList[i].drawableRes),
                             "Initiative Tracker Token",
                             Modifier
-                                .fillMaxHeight(
-                                    animateFloatAsState(
-                                        if (index == mVM.currentToken) 0.8F
-                                        else 0.6F
-                                    ).value
-                                )
+                                .fillMaxHeight(currentTokenAnim.value)
                                 .align(Alignment.Center)
                                 .padding(horizontal = 7.toDp, vertical = 7.toDp),
                             Color.Unspecified
@@ -128,7 +131,9 @@ fun InitiativeTracker(mVM: MainViewModel) {
             contentAlignment = Alignment.BottomCenter
         ){
             Row(
-                Modifier.fillMaxWidth().height(150.toDp),
+                Modifier
+                    .fillMaxWidth()
+                    .height(150.toDp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {

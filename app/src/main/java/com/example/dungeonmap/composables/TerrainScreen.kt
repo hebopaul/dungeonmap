@@ -54,7 +54,7 @@ fun TerrainScreen(mVM: MainViewModel) {
     ) {
         Box( modifier = Modifier ) {
             ActiveMap( myModifier, mVM )
-            //MapPickerDrawer(mVM)
+            //ActiveEffects( mVM.activeEffects)
             AnimatedVisibility(
                 visible = mVM.isPickerVisible,
                 enter = slideInVertically ( initialOffsetY = { it }, animationSpec = tween(500) ),
