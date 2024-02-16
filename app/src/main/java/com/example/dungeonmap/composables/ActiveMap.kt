@@ -39,6 +39,8 @@ fun ActiveMap(
             contentDescription = "Image from gallery",
             modifier = myModifier
         )
+
+        if (mVM.effectCreatorIsVisible) PolygonEffect(mVM)
     }
     Box(
         modifier = Modifier

@@ -30,7 +30,7 @@ fun TerrainScreen(mVM: MainViewModel) {
         .fillMaxSize()
         .pointerInput(Unit) {
             detectTransformGestures { _, drag, zoom, _ ->
-                if (zoom == 1F) mVM.updateMapPosition(drag)
+                if (zoom == 1F) mVM.updateGlobalPosition(drag)
                 if (mVM.backgroundMap.isSelected) mVM.updateGlobalScale(zoom)
                 if (!mVM.backgroundMap.isSelected) mVM.updateTokenSize(zoom, mVM.getSelectedTokenUuid())
                 Log.d("selection", "isMapSelected: ${mVM.backgroundMap.isSelected}")
@@ -54,9 +54,8 @@ fun TerrainScreen(mVM: MainViewModel) {
     ) {
         Box( modifier = Modifier ) {
             ActiveMap( myModifier, mVM )
-            //ActiveEffects( mVM.activeEffects)
             AnimatedVisibility(
-                visible = mVM.isPickerVisible,
+                visible = mVM.pickerIsVisible,
                 enter = slideInVertically ( initialOffsetY = { it }, animationSpec = tween(500) ),
                 exit = slideOutVertically ( targetOffsetY = { it }, animationSpec = tween(500) )
             ){ PickerDrawer(mVM) }

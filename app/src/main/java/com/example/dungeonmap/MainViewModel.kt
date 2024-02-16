@@ -10,6 +10,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.example.dungeonmap.data.BackgroundMap
+import com.example.dungeonmap.data.Circle
+import com.example.dungeonmap.data.Line
+import com.example.dungeonmap.data.PointerEffect
+import com.example.dungeonmap.data.Polygon
+import com.example.dungeonmap.data.Rectangle
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.data.VisibleEffect
@@ -17,6 +22,7 @@ import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getNameFromResId
 import com.example.dungeonmap.utilities.getStockImageList
+import kotlinx.coroutines.delay
 import java.util.UUID
 import kotlin.random.Random
 
@@ -38,11 +44,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     //This is where we keep our global variables
     var globalPosition by mutableStateOf(Position(0F, 0F))
         private set
-
     var globalScale by mutableFloatStateOf(1F)
-
-
-    var isPickerVisible by mutableStateOf(false)
+    var pickerIsVisible by mutableStateOf(false)
+    var effectCreatorIsVisible by mutableStateOf(false)
+    var uiIsVisible by mutableStateOf(true)
     var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
         private set
     var userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
@@ -51,32 +56,32 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         private set
     var _activeTokenList by mutableStateOf(listOf(Token()))
         private set
-    var battleIsOngoing by mutableStateOf(false)
+    var battleOngoing by mutableStateOf(false)
         private set
     var currentToken by mutableStateOf(0)
         private set
-    val _visibleEffects by mutableStateOf(listOf(VisibleEffect()))
+    var _visibleEffects: List<VisibleEffect> by mutableStateOf(listOf(Circle()))
+        private set
 
     val visibleEffects = snapshotFlow {
-        _visibleEffects.map { token -> token.copy(
-            position = Position(
-                x = token.position.x * globalScale,
-                y = token.position.y * globalScale
-            )
-        )}
-    }
-
-    val activeTokenList = snapshotFlow{
-        _activeTokenList.map { token -> token.copy(
-                position = globalPosition + (token.position * globalScale),
-            )
+        _visibleEffects.map { effect ->
+            when (effect) {
+                is Circle -> effect.copy(globalPosition + (effect.position * globalScale))
+                is Rectangle -> effect.copy(globalPosition + (effect.position * globalScale))
+                is Polygon -> effect.copy(globalPosition + (effect.position * globalScale))
+                is Line -> effect.copy(globalPosition + (effect.position * globalScale))
+            }
         }
+    }
+    var tempPointerEffect: PointerEffect? by mutableStateOf(null)
+    val activeTokenList = snapshotFlow{
+        _activeTokenList.map { token -> token.copy(position = globalPosition + (token.position * globalScale))}
     }
 
     val randomD20 = stockD20List[Random.nextInt(stockD20List.size-1)]
 
 
-    fun updateMapPosition(newOffset: Offset) {
+    fun updateGlobalPosition(newOffset: Offset) {
         globalPosition += newOffset
     }
 
@@ -151,7 +156,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun setPickerVisibility (state: Boolean) {
-            isPickerVisible = state
+            pickerIsVisible = state
     }
 
     fun updateUserAddedMapsList(){
@@ -193,7 +198,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         }
         //We start with the second occurrence of the token with the highest initiative
         currentToken = _activeTokenList.size
-        battleIsOngoing = true
+        battleOngoing = true
 
     }
 
@@ -205,7 +210,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun endBattle () {
-        battleIsOngoing = false
+        battleOngoing = false
     }
 
     fun previousTokenClicked(startOfList: Boolean) {
@@ -213,6 +218,50 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
             false -> currentToken--
             true -> currentToken += _activeTokenList.size
         }
+    }
+
+    fun addCircleEffect(position: Position, radius: Float) {
+        _visibleEffects += mutableListOf(
+            Circle(
+                position = position,
+                radius = radius
+            )
+        )
+    }
+
+    fun addRectangleEffect(position: Position, width: Float, height: Float) {
+        _visibleEffects += mutableListOf(
+            Rectangle(
+                position = position,
+                width = width,
+                height = height
+            )
+        )
+    }
+
+    fun addPolygonEffect(position: Position, points: List<Position>) {
+        _visibleEffects += mutableListOf(
+            Polygon(
+                position = position,
+                points = points
+            )
+        )
+    }
+
+    fun addLineEffect(position: Position, startPosition: Position, endPosition: Position) {
+        _visibleEffects += mutableListOf(
+            Line(
+                position = position,
+                startPosition = startPosition,
+                endPosition = endPosition
+            )
+        )
+    }
+
+    suspend fun createPointerEffect(position: Position) {
+        tempPointerEffect = PointerEffect(position)
+        delay(10000)
+        tempPointerEffect = null
     }
 
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +58,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
-        AnimatedVisibility(visible = mVM.battleIsOngoing) {
+        AnimatedVisibility(visible = mVM.battleOngoing) {
             InitiativeTracker(mVM)
         }
     }
@@ -65,7 +66,7 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ){
-        Surface(
+        if (mVM.uiIsVisible) Surface(
             color = Color.Black,
             modifier = Modifier
                 .offset(0.toDp, 750.toDp)
@@ -74,34 +75,32 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                 .alpha(0.3F)
         ){}
 
-        Row ( horizontalArrangement = Arrangement.Center ){
+        if (mVM.uiIsVisible) Row ( horizontalArrangement = Arrangement.Center ){
 
             IconButton(
                 onClick = { mVM.setPickerVisibility(true) },
-                content = {
-                    Icon(
-                        imageVector = Icons.Outlined.AddCircleOutline,
-                        contentDescription = "add item",
-                        tint = Color.White
-                    )
-                }
+                content = { Icon(   imageVector = Icons.Outlined.AddCircleOutline,
+                                    contentDescription = "add item",
+                                    tint = Color.White                    )}
             )
             IconButton(
-                onClick = {
-                    d20Clicked = System.currentTimeMillis()
-                    mVM.rollForInitiative()
-                },
-                content = {
-                    Icon(
-                        painter = painterResource(mVM.randomD20),
-                        contentDescription = "roll for initiative",
-                        tint = Color.Unspecified
-                    )
-                },
+                onClick = { d20Clicked = System.currentTimeMillis()
+                            mVM.rollForInitiative() },
+                content = { Icon(   painter = painterResource(mVM.randomD20),
+                                    contentDescription = "roll for initiative",
+                                    tint = Color.Unspecified            )},
                 modifier = Modifier
                     .scale(1.5F + animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value)
                     .offset(x = 0.toDp, y = -30.toDp)
                     .rotate(shake.value)
+            )
+            IconButton(
+                onClick = {
+                    mVM.effectCreatorIsVisible = true
+                    mVM.uiIsVisible = false                               },
+                content = { Icon(   imageVector = Icons.Filled.StarOutline,
+                                    contentDescription = "add item",
+                                    tint = Color.White                    )}
             )
         }
     }
