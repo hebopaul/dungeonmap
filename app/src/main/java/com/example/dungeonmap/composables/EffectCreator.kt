@@ -15,7 +15,6 @@ import androidx.compose.material.icons.sharp.Cancel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +40,7 @@ fun EffectCreator(mVM: MainViewModel, whatShape: String) {
     var tempPointsList: List<Position> by remember { mutableStateOf(listOf()) }
     Box(modifier = Modifier
         .fillMaxSize()
+        .polygonEffect(mVM)
 
 
     ){
@@ -121,29 +121,30 @@ fun PolygonEffect(mVM: MainViewModel) {
 }
 
 @Composable
-fun Modifier.polygonEffect(mVM: MainViewModel) {
+fun Modifier.polygonEffect(mVM: MainViewModel): Modifier {
     var tempPointsList: List<Position> by remember { mutableStateOf(listOf()) }
-    val polygon by remember { mutableStateOf(Polygon())}
+    var polygon by remember { mutableStateOf(Polygon())}
 
-    pointerInput(Unit) {
+    return this then pointerInput(Unit) {
         detectTapGestures(onTap = {
-            tempPointsList += Position(it.x, it.y)
+            polygon.addPoint(Position(it.x, it.y))
             println("Point added: ${it.x} + ${it.y}")
         })
     }
         .pointerInput(Unit) {
             detectDragGestures { _, dragAmount ->
                 mVM.updateGlobalPosition(dragAmount)
-                tempPointsList = tempPointsList.map {
+                polygon = polygon.copy ( points = polygon.points.map {
                     Position(
                         x = it.x + dragAmount.x * mVM.globalScale,
                         y = it.y + dragAmount.y * mVM.globalScale
                     )
                 }
+                )
             }
         }
         .drawBehind {
-
+            polygon.draw
         }
 }
 

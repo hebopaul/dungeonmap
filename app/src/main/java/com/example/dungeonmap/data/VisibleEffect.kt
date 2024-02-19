@@ -15,7 +15,7 @@ import java.util.UUID
 
 sealed class VisibleEffect (
     open val position: Position,
-    open val color: Color = Color.Black,
+    open val color: Color = Color.Gray,
     open val alpha: Float = 0.6F,
     open val uuid: UUID = UUID.randomUUID()
 ) {
@@ -53,7 +53,7 @@ data class Rectangle (
 
 data class Polygon (
     override val position: Position =  Position(0f, 0f),
-    val points: List<Position> = listOf(),
+    var points: List<Position> = listOf(),
 ): VisibleEffect(position) {
     override val draw: @Composable DrawScope.() -> Unit = {
         drawPath(
@@ -68,6 +68,8 @@ data class Polygon (
             alpha = alpha
         )
     }
+
+    fun addPoint (point: Position) { points += point}
 }
 
 data class Line (

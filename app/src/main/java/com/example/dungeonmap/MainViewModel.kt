@@ -70,6 +70,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 is Rectangle -> effect.copy(globalPosition + (effect.position * globalScale))
                 is Polygon -> effect.copy(globalPosition + (effect.position * globalScale))
                 is Line -> effect.copy(globalPosition + (effect.position * globalScale))
+                is PointerEffect -> effect.copy(globalPosition + (effect.position * globalScale))
             }
         }
     }
@@ -252,7 +253,6 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         _visibleEffects += mutableListOf(
             Line(
                 position = position,
-                startPosition = startPosition,
                 endPosition = endPosition
             )
         )
