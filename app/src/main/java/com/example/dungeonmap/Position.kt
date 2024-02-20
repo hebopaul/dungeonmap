@@ -19,6 +19,15 @@ fun Position.coerceAtMostScalable(width: Float, height: Float, scale: Float): Po
             else this.y.coerceAtMost(height * scale)
     )
 
+fun Offset.toPosition() = Position(
+    x = this.x,
+    y = this.y
+)
+
+fun Position.toOffset() = Offset(
+    x = this.x,
+    y = this.y
+)
 
 operator fun Position.plus(offset: Offset) = Position(
     x = this.x + offset.x,

@@ -1,5 +1,6 @@
 package com.example.dungeonmap.composables
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import com.example.dungeonmap.MainViewModel
@@ -19,10 +19,9 @@ fun ActiveMap(
     myModifier: Modifier,
     mVM: MainViewModel,
 ) {
-
     val map = mVM.backgroundMap
     val effectsList = mVM.visibleEffects.collectAsState(initial = null).value
-    val effectShape: String = ""
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -43,16 +42,16 @@ fun ActiveMap(
             modifier = myModifier
         )
 
-        if (mVM.effectCreatorIsVisible) EffectCreator(mVM, effectShape)
+        if (mVM.effectCreatorIsVisible) EffectCreator(mVM)
     }
+
+    Canvas( modifier = Modifier
+        .fillMaxSize()
+    ){ effectsList?.forEach {effect -> effect.draw()()} }
+
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .drawBehind {
-                        effectsList?.forEach {effect ->
-                            effect.draw
-                        }
-            },
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     )
         {

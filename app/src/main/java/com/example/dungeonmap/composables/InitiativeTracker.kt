@@ -24,8 +24,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +34,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.dungeonmap.MainViewModel
-import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.ui.theme.celestia
 import com.example.dungeonmap.utilities.toDp
 import kotlinx.coroutines.launch
@@ -45,7 +42,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun InitiativeTracker(mVM: MainViewModel) {
 
-    val tokenList = mVM._activeTokenList
+    val tokenList = mVM._activeTokens
     val listSize = 50
     val currentToken = mVM.currentToken
     Column{

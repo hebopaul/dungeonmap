@@ -45,7 +45,7 @@ import com.example.dungeonmap.utilities.toDp
 
 @Composable
 fun Tokens(mVM: MainViewModel) {
-    mVM.activeTokenList.collectAsState( initial = null).value?.forEach {
+    mVM.activeTokens.collectAsState( initial = null).value?.forEach {
         TokenBox(mVM, it)
     }
 
