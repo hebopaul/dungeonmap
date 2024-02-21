@@ -12,7 +12,7 @@ import java.util.UUID
 
 
 sealed class VisibleEffect (
-    open val position: Position,
+    open var position: Position,
     open val color: Color = Color.Gray,
     open val alpha: Float = 0.6F,
     open val uuid: UUID = UUID.randomUUID()
@@ -21,7 +21,7 @@ sealed class VisibleEffect (
 }
 
 data class Circle (
-    override val position: Position =  Position(0f, 0f),
+    override var position: Position =  Position(0f, 0f),
     val radius: Float = 1f
 ): VisibleEffect(position) {
     override fun draw():  DrawScope.() -> Unit = {
@@ -35,7 +35,7 @@ data class Circle (
 }
 
 data class Rectangle (
-    override val position: Position =  Position(0f, 0f),
+    override var position: Position =  Position(0f, 0f),
     val dimensions: Size,
 ): VisibleEffect(position) {
     override fun draw():  DrawScope.() -> Unit = {
@@ -49,7 +49,7 @@ data class Rectangle (
 }
 
 data class Polygon (
-    override val position: Position =  Position(0f, 0f),
+    override var position: Position =  Position(0f, 0f),
     var points: List<Position> = listOf(),
 ): VisibleEffect(position) {
     override fun draw():  DrawScope.() -> Unit = {
@@ -77,7 +77,7 @@ data class Polygon (
 }
 
 data class Line (
-    override val position: Position =  Position(0f, 0f),
+    override var position: Position =  Position(0f, 0f),
     val offset: Offset
 ): VisibleEffect(position) {
     override fun draw():  DrawScope.() -> Unit = {
@@ -92,7 +92,7 @@ data class Line (
 }
 
 data class PointerEffect (
-    override val position: Position
+    override var position: Position
 ) : VisibleEffect (position) {
     override fun draw():  DrawScope.() -> Unit = {
         repeat(20) { rep ->

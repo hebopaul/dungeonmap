@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import com.example.dungeonmap.MainViewModel
@@ -42,11 +43,13 @@ fun ActiveMap(
             modifier = myModifier
         )
 
+
         if (mVM.effectCreatorIsVisible) EffectCreator(mVM)
     }
 
     Canvas( modifier = Modifier
         .fillMaxSize()
+        .scale(mVM.globalScale)
     ){ effectsList?.forEach {effect -> effect.draw()()} }
 
     Box(

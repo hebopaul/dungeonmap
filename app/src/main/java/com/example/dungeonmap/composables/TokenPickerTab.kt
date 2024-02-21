@@ -29,12 +29,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.beautifyResName
 import com.example.dungeonmap.utilities.toDp
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -45,8 +47,10 @@ fun TokenPickerTab(
     val tokenPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
-            mVM.fileHandler.importTokenFromDevice(it)
-            mVM.updateUserAddedTokensList()
+            mVM.viewModelScope.launch{
+                mVM.fileHandler.importTokenFromDevice(it)
+                mVM.updateUserAddedTokensList()
+            }
         }
     )
 
@@ -209,8 +213,10 @@ fun TokenRowItem(
             modifier = Modifier
                 .scale(1.5f)
                 .clickable {
-                    mVM.fileHandler.deleteImageFromInternalStorage(token.uri)
-                    mVM.updateUserAddedTokensList()
+                    mVM.viewModelScope.launch {
+                        mVM.fileHandler.deleteImageFromInternalStorage(token.uri)
+                        mVM.updateUserAddedTokensList()
+                    }
                 }
         )
     }

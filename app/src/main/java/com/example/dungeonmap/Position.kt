@@ -49,6 +49,11 @@ operator fun Position.minus(offset: Offset) = Position(
     y = this.y - offset.y
 )
 
+operator fun Position.minus(position: Position) = Position(
+    x = this.x - position.x,
+    y = this.y - position.y
+)
+
 operator fun Position.div(scale: Float) = Position(
     x = this.x / scale,
     y = this.y / scale

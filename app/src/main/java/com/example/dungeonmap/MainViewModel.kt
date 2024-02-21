@@ -10,8 +10,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Circle
+import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.Line
 import com.example.dungeonmap.data.PointerEffect
 import com.example.dungeonmap.data.Polygon
@@ -24,6 +26,7 @@ import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getNameFromResId
 import com.example.dungeonmap.utilities.getStockImageList
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.random.Random
 
@@ -33,6 +36,17 @@ const val X_BOUNDARY: Float = 350F
 const val Y_BOUNDARY: Float = 500F
 
 class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
+
+    var userAddedMapsList: List<InternalStorageImage> by mutableStateOf(listOf())
+        private set
+    var userAddedTokensList: List<InternalStorageImage> by mutableStateOf(listOf())
+        private set
+    init {
+        viewModelScope.launch{
+            userAddedMapsList = fileHandler.getInternalStorageMapList()
+            userAddedTokensList = fileHandler.getInternalStorageTokenList()
+        }
+    }
 
     //Loading all of the image resources we are going to need
     val stockMapsList: List<StockImage> = getStockImageList("map")
@@ -49,10 +63,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     var pickerIsVisible by mutableStateOf(false)
     var effectCreatorIsVisible by mutableStateOf(false)
     var uiIsVisible by mutableStateOf(true)
-    var userAddedMapsList by mutableStateOf(fileHandler.getInternalStorageMapList())
-        private set
-    var userAddedTokensList by mutableStateOf(fileHandler.getInternalStorageTokenList())
-        private set
+
+
+
+
     var backgroundMap by mutableStateOf(BackgroundMap())
         private set
     var _activeTokens: List<Token> by mutableStateOf(listOf())
@@ -67,11 +81,11 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     val visibleEffects = snapshotFlow {
         _visibleEffects.map { effect ->
             when (effect) {
-                is Circle -> effect.copy(globalPosition + (effect.position * globalScale))
-                is Rectangle -> effect.copy(globalPosition + (effect.position * globalScale))
-                is Polygon -> effect.copy(globalPosition + (effect.position * globalScale))
-                is Line -> effect.copy(globalPosition + (effect.position * globalScale))
-                is PointerEffect -> effect.copy(globalPosition + (effect.position * globalScale))
+                is Circle -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
+                is Rectangle -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
+                is Polygon -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
+                is Line -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
+                is PointerEffect -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
             }
         }
     }
@@ -90,9 +104,8 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     //This function is called when the user pinches to zoom in or out
     fun updateGlobalScale(scaleChange: Float) {
         globalScale = (globalScale * scaleChange).coerceIn(MIN_SCALE, MAX_SCALE)
-        globalPosition = (globalPosition * scaleChange)/*.coerceAtMostScalable(
-                                                            X_BOUNDARY, Y_BOUNDARY, globalScale
-                                                        )*/
+        globalPosition = (globalPosition * scaleChange)
+        _visibleEffects.forEach { if (MAX_SCALE > globalScale && MIN_SCALE < globalScale)it.position /= scaleChange }
         if(_activeTokens.isNotEmpty())
             Log.d("Moved token","globalScale:${globalScale} "+"global: $globalPosition "+"token: ${_activeTokens[0].position}")
     }
@@ -162,10 +175,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
             pickerIsVisible = state
     }
 
-    fun updateUserAddedMapsList(){
+    suspend fun updateUserAddedMapsList(){
         userAddedMapsList = fileHandler.getInternalStorageMapList()
     }
-    fun updateUserAddedTokensList(){
+    suspend fun updateUserAddedTokensList(){
         userAddedTokensList = fileHandler.getInternalStorageTokenList()
     }
 
@@ -226,19 +239,19 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
 
     fun addCircleEffect(position: Position, radius: Float) {
-        _visibleEffects += mutableListOf( Circle(position, radius) )
+        _visibleEffects += mutableListOf( Circle(position - globalPosition, radius) )
     }
 
     fun addRectangleEffect(position: Position, dimensions: Size) {
-        _visibleEffects += mutableListOf( Rectangle(position, dimensions) )
+        _visibleEffects += mutableListOf( Rectangle(position - globalPosition, dimensions) )
     }
 
     fun addPolygonEffect(position: Position, points: List<Position>) {
-        _visibleEffects += mutableListOf( Polygon(position, points) )
+        _visibleEffects += mutableListOf( Polygon(position - globalPosition, points) )
     }
 
     fun addLineEffect(position: Position, offset: Offset) {
-        _visibleEffects += mutableListOf( Line(position, offset) )
+        _visibleEffects += mutableListOf( Line(position - globalPosition, offset) )
     }
 
     suspend fun createPointerEffect(position: Position) {

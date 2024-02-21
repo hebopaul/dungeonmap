@@ -99,7 +99,7 @@ fun PolygonEffect(mVM: MainViewModel) {
        EffectCreatorButtons(
            modifier = Modifier.align(Alignment.BottomEnd),
            onFinishedClicked = {
-               mVM.addPolygonEffect (position = mVM.globalPosition, points = pointsList )
+               mVM.addPolygonEffect (Position.Zero, pointsList )
                mVM.effectCreatorIsVisible = false
                mVM.uiIsVisible = true
                println("onFinishedClicked")
@@ -142,7 +142,7 @@ fun CircleEffect(mVM: MainViewModel) {
         EffectCreatorButtons(
             modifier = Modifier.align(Alignment.BottomEnd),
             onFinishedClicked = {
-                mVM.addCircleEffect (position = mVM.globalPosition + center, radius * mVM.globalScale )
+                mVM.addCircleEffect (position = center, radius)
                 mVM.effectCreatorIsVisible = false
                 mVM.uiIsVisible = true
                 println("onFinishedClicked")
@@ -188,7 +188,7 @@ fun RectangleEffect(mVM: MainViewModel) {
         EffectCreatorButtons(
             modifier = Modifier.align(Alignment.BottomEnd),
             onFinishedClicked = {
-                mVM.addRectangleEffect (position = startPos + mVM.globalPosition, dimensions )
+                mVM.addRectangleEffect ( startPos, dimensions )
                 mVM.effectCreatorIsVisible = false
                 mVM.uiIsVisible = true
                 println("onFinishedClicked")
@@ -230,7 +230,7 @@ fun LineEffect(mVM: MainViewModel) {
         EffectCreatorButtons(
             modifier = Modifier.align(Alignment.BottomEnd),
             onFinishedClicked = {
-                mVM.addLineEffect (position = startPos + mVM.globalPosition, offset )
+                mVM.addLineEffect ( startPos, offset )
                 mVM.effectCreatorIsVisible = false
                 mVM.uiIsVisible = true
                 println("onFinishedClicked")

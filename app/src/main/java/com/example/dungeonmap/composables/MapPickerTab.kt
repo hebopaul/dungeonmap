@@ -30,12 +30,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.MainViewModel
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.ui.theme.arsenalFamily
 import com.example.dungeonmap.utilities.beautifyResName
 import com.example.dungeonmap.utilities.toDp
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -46,8 +48,10 @@ fun MapPickerTab(
     val mapPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
-            mVM.fileHandler.importMapFromDevice(it)
-            mVM.updateUserAddedMapsList()
+            mVM.viewModelScope.launch{
+                mVM.fileHandler.importMapFromDevice(it)
+                mVM.updateUserAddedMapsList()
+            }
         }
 
     )
@@ -213,7 +217,7 @@ fun MapRowItem(
                 .scale(1.5f)
                 .clickable {
                     mVM.fileHandler.deleteImageFromInternalStorage(map.uri)
-                    mVM.updateUserAddedMapsList()
+                    mVM.viewModelScope.launch { mVM.updateUserAddedMapsList() }
                 }
         )
     }
