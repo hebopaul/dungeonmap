@@ -11,11 +11,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dungeonmap.data.AnimatedPointer
 import com.example.dungeonmap.data.BackgroundMap
 import com.example.dungeonmap.data.Circle
 import com.example.dungeonmap.data.InternalStorageImage
 import com.example.dungeonmap.data.Line
-import com.example.dungeonmap.data.PointerEffect
 import com.example.dungeonmap.data.Polygon
 import com.example.dungeonmap.data.Rectangle
 import com.example.dungeonmap.data.StockImage
@@ -25,7 +25,6 @@ import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getNameFromResId
 import com.example.dungeonmap.utilities.getStockImageList
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.random.Random
@@ -85,11 +84,10 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
                 is Rectangle -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
                 is Polygon -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
                 is Line -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
-                is PointerEffect -> effect.copy(globalPosition / globalScale + (effect.position * globalScale))
             }
         }
     }
-    var tempPointerEffect: PointerEffect? by mutableStateOf(null)
+    var tempPointerEffect: AnimatedPointer? by mutableStateOf(null)
     val activeTokens = snapshotFlow{
         _activeTokens.map { token -> token.copy(position = globalPosition + (token.position * globalScale))}
     }
@@ -254,10 +252,9 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
         _visibleEffects += mutableListOf( Line(position - globalPosition, offset) )
     }
 
-    suspend fun createPointerEffect(position: Position) {
-        tempPointerEffect = PointerEffect(position)
-        delay(10000)
-        tempPointerEffect = null
+    fun addAnimatedPointerEffect(position: Position, duration: Int) {
+        tempPointerEffect = AnimatedPointer(position, duration)
     }
+    fun animatedPointerStopped() { tempPointerEffect = null}
 
 }

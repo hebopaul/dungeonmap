@@ -91,18 +91,7 @@ data class Line (
     }
 }
 
-data class PointerEffect (
-    override var position: Position
-) : VisibleEffect (position) {
-    override fun draw():  DrawScope.() -> Unit = {
-        repeat(20) { rep ->
-            drawCircle(
-                color = Color.Black,
-                center = Offset( position.x, position.y),
-                radius = if (rep == 1) 100F
-                    else if (rep % 2 == 0) 20F else 5F,
-                alpha = 0.25F
-            )
-        }
-    }
-}
+data class AnimatedPointer (
+    var position: Position,
+    val durationSecs: Int
+)

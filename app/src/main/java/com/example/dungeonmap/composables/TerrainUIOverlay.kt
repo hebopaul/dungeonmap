@@ -4,6 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.draggable2D
+import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,16 +35,25 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.example.dungeonmap.MainViewModel
+import com.example.dungeonmap.Position
+import com.example.dungeonmap.animated_effects.InvokeParticles
+import com.example.dungeonmap.plus
+import com.example.dungeonmap.toPosition
 import com.example.dungeonmap.utilities.toDp
+import kotlinx.coroutines.delay
 
 // This composable is used to add all the buttons etc.
 // on the Terrain
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TerrainUIOverlay( mVM: MainViewModel ) {
 
     //cool die animation
     val shake = remember { Animatable(0f) }
     var d20Clicked by remember { mutableStateOf(0L) }
+    var pointerPosition by remember { mutableStateOf(Position.Zero)}
+    var pointerIsDragged by remember { mutableStateOf(false)}
+    
     LaunchedEffect(d20Clicked) {
         if (d20Clicked != 0L) {
             for (i in 0..10) {
@@ -63,19 +75,29 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
         }
     }
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
+        modifier = Modifier.fillMaxSize()
     ){
+        LaunchedEffect(pointerIsDragged) {
+            if (!pointerIsDragged) delay (10000)
+            mVM.animatedPointerStopped()
+        }
+        if (mVM.tempPointerEffect != null) InvokeParticles(position = pointerPosition, duration = 10000)
+
+
         if (mVM.uiIsVisible) Surface(
             color = Color.Black,
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .offset(0.toDp, 750.toDp)
                 .size(1000.toDp)
                 .clip(CircleShape)
                 .alpha(0.3F)
         ){}
-
-        if (mVM.uiIsVisible) Row ( horizontalArrangement = Arrangement.Center ){
+        
+        if (mVM.uiIsVisible) Row ( 
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ){
 
             IconButton(
                 onClick = { mVM.setPickerVisibility(true) },
@@ -98,9 +120,24 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                 onClick = {
                     mVM.effectCreatorIsVisible = true
                     mVM.uiIsVisible = false                               },
-                content = { Icon(   imageVector = Icons.Filled.StarOutline,
-                                    contentDescription = "add item",
-                                    tint = Color.White                    )}
+                content = { 
+                    Icon(   
+                        imageVector = Icons.Filled.StarOutline,
+                        contentDescription = "add item",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .draggable2D(
+                                state = rememberDraggable2DState { delta ->
+                                    pointerPosition += delta.toPosition()
+                                },
+                                onDragStarted = { startedPosition ->
+                                    pointerPosition = startedPosition.toPosition()
+                                    pointerIsDragged = true
+                                },
+                                onDragStopped = { pointerIsDragged = false }
+                            ),
+                    )
+                }
             )
         }
     }
