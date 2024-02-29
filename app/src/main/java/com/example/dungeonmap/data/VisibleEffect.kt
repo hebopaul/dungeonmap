@@ -10,7 +10,6 @@ import com.example.dungeonmap.Position
 import com.example.dungeonmap.toOffset
 import java.util.UUID
 
-
 sealed class VisibleEffect (
     open var position: Position,
     open val color: Color = Color.Gray,
@@ -90,7 +89,6 @@ data class Line (
         )
     }
 }
-
 data class AnimatedPointer (
     var position: Position,
     val durationSecs: Int

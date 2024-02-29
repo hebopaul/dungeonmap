@@ -8,7 +8,11 @@ class Position(
 ) {
     companion object {
         val Zero = Position( 0F, 0F)
+        lateinit var screenMax: Position
+        fun updateScreenMax(maxX: Float, maxY: Float){ screenMax = Position(maxX, maxY) }
     }
+
+    override fun toString(): String = "${this.x}, ${this.y}"
 }
 
 fun Position.coerceAtMostScalable(width: Float, height: Float, scale: Float): Position =
@@ -18,6 +22,7 @@ fun Position.coerceAtMostScalable(width: Float, height: Float, scale: Float): Po
         y = if(this.y < 0) this.x.coerceAtLeast(-(height * scale))
             else this.y.coerceAtMost(height * scale)
     )
+
 
 fun Offset.toPosition() = Position(
     x = this.x,

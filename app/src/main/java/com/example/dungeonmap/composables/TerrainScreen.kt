@@ -1,6 +1,8 @@
 package com.example.dungeonmap.composables
 
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.WindowManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -20,11 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.dungeonmap.MainViewModel
+import com.example.dungeonmap.Position
 import com.example.dungeonmap.utilities.toDp
 
 @Composable
 fun TerrainScreen(mVM: MainViewModel) {
-
 
     val myModifier  = Modifier
         .fillMaxSize()
@@ -52,6 +54,9 @@ fun TerrainScreen(mVM: MainViewModel) {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
+
+
+
         Box( modifier = Modifier ) {
             ActiveMap( myModifier, mVM )
             AnimatedVisibility(

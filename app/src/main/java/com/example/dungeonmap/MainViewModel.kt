@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dungeonmap.data.AnimatedPointer
@@ -21,11 +22,27 @@ import com.example.dungeonmap.data.Rectangle
 import com.example.dungeonmap.data.StockImage
 import com.example.dungeonmap.data.Token
 import com.example.dungeonmap.data.VisibleEffect
+import com.example.dungeonmap.network.NetworkState
+import com.example.dungeonmap.network.Player
 import com.example.dungeonmap.storage.FileHandler
 import com.example.dungeonmap.utilities.getDrawableResourcesIds
 import com.example.dungeonmap.utilities.getNameFromResId
 import com.example.dungeonmap.utilities.getStockImageList
+import com.google.android.gms.nearby.connection.AdvertisingOptions
+import com.google.android.gms.nearby.connection.ConnectionInfo
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
+import com.google.android.gms.nearby.connection.ConnectionResolution
+import com.google.android.gms.nearby.connection.ConnectionsClient
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
+import com.google.android.gms.nearby.connection.DiscoveryOptions
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback
+import com.google.android.gms.nearby.connection.Payload
+import com.google.android.gms.nearby.connection.PayloadCallback
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate
+import com.google.android.gms.nearby.connection.Strategy
 import kotlinx.coroutines.launch
+import me.nikhilchaudhari.quarks.BuildConfig
 import java.util.UUID
 import kotlin.random.Random
 
@@ -34,7 +51,11 @@ const val MAX_SCALE: Float = 10F
 const val X_BOUNDARY: Float = 350F
 const val Y_BOUNDARY: Float = 500F
 
-class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
+class MainViewModel(
+    val fileHandler: FileHandler,
+    val connectionsClient: ConnectionsClient
+) : ViewModel() {
+
 
     var userAddedMapsList: List<InternalStorageImage> by mutableStateOf(listOf())
         private set
@@ -110,7 +131,7 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     //This function is called when the user drags the token
     fun updateTokenPosition(newPosition: Offset, uuid: UUID) {
-        Log.d("Moved token","globalScale:${globalScale} "+"global: $globalPosition "+"token: ${_activeTokens[0].position}")
+        Log.d("Moved token","globalScale:${globalScale} "+"global: ${globalPosition} "+"token: ${_activeTokens[0].position}")
         _activeTokens = _activeTokens.map { token ->
             if (token.uuid == uuid) token.copy(
                     position = token.position + newPosition / globalScale
@@ -238,18 +259,22 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
 
     fun addCircleEffect(position: Position, radius: Float) {
         _visibleEffects += mutableListOf( Circle(position - globalPosition, radius) )
+        Log.d("Effect Placed", "at position: $position")
     }
 
     fun addRectangleEffect(position: Position, dimensions: Size) {
-        _visibleEffects += mutableListOf( Rectangle(position - globalPosition, dimensions) )
+        _visibleEffects += mutableListOf( Rectangle(position - globalPosition*globalScale, dimensions/globalScale) )
+        Log.d("Effect Placed", "at position: $position")
     }
 
     fun addPolygonEffect(position: Position, points: List<Position>) {
         _visibleEffects += mutableListOf( Polygon(position - globalPosition, points) )
+        Log.d("Effect Placed", "at position: $position")
     }
 
     fun addLineEffect(position: Position, offset: Offset) {
         _visibleEffects += mutableListOf( Line(position - globalPosition, offset) )
+        Log.d("Effect Placed", "at position: $position")
     }
 
     fun addAnimatedPointerEffect(position: Position, duration: Int) {
@@ -257,4 +282,126 @@ class MainViewModel(val fileHandler: FileHandler) : ViewModel() {
     }
     fun animatedPointerStopped() { tempPointerEffect = null}
 
+
+
+    //networking
+    var localPlayer = Player (
+        userName = "pavlos",
+        color = Color.Red,
+        isConnected = true
+    )
+    var players: List<Player>? = listOf(
+        Player (
+            userName = "pavlos",
+            color = Color.Blue,
+            isConnected = true
+        ),
+        Player (
+            userName = "pavlos",
+            color = Color.Green,
+            isConnected = true
+        ),
+        Player (
+            userName = "pavlos",
+            color = Color.Yellow,
+            isConnected = false
+        )
+    )
+    fun updateUserName(userName: String){
+        localPlayer = localPlayer.copy(userName = userName)
+    }
+
+    var networkState = NetworkState()
+
+    private val payloadCallback: PayloadCallback = object : PayloadCallback() {
+        override fun onPayloadReceived(endpointId: String, payload: Payload) {
+            Log.d("Network", "onPayloadReceived")
+        }
+
+        override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
+            Log.d("Network", "onPayloadTransferUpdate")
+        }
+    }
+
+    private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
+        override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
+            Log.d("Network", "onConnectionInitiated")
+
+            Log.d("Network", "Accepting connection...")
+            connectionsClient.acceptConnection(endpointId, payloadCallback)
+        }
+
+        override fun onConnectionResult(endpointId: String, resolution: ConnectionResolution) {
+            Log.d("Network", "onConnectionResult")
+
+            when (resolution.status.statusCode) {
+                ConnectionsStatusCodes.STATUS_OK -> {
+                    Log.d("Network", "ConnectionStatusCodes.STATUS_OK")
+                    players = players?.plus(listOf( Player(endpointId = endpointId) ))
+                }
+                ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> Log.d("Network", "ConnectionStatusCodes.STATUS_CONNECTION_REJECTED")
+                ConnectionsStatusCodes.STATUS_ERROR -> Log.d("Network", "ConnectionStatusCodes.STATUS_ERROR")
+                else -> Log.d("Network", "Unknown status code: ${resolution.status.statusCode}")
+            }
+        }
+
+        override fun onDisconnected(endpointId: String) {
+            Log.d("Network", "onDisconnected")
+        }
+    }
+
+    private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
+        override fun onEndpointFound( endpointId: String, info: DiscoveredEndpointInfo) {
+            Log.d("Network", "onEndpointFound")
+            Log.d("Network", "Requesting connection...")
+
+            connectionsClient.requestConnection(
+                localPlayer.userName,
+                endpointId,
+                connectionLifecycleCallback
+            ).addOnSuccessListener {
+                Log.d("Network", "Successfully requested connection")
+            }.addOnFailureListener {
+                Log.d("Network", "Failed to request connection")
+            }
+        }
+
+        override fun onEndpointLost( endpointId: String) {
+            Log.d("Network", "onEndpointLost")
+        }
+    }
+    fun startHosting() {
+        Log.d("Network", "Start advertising...")
+        networkState.isHosting = true
+        val advertisingOptions = AdvertisingOptions.Builder().setStrategy(Strategy.P2P_STAR).build()
+
+        connectionsClient.startAdvertising(
+            localPlayer.userName,
+            BuildConfig.LIBRARY_PACKAGE_NAME,
+            connectionLifecycleCallback,
+            advertisingOptions
+        ).addOnSuccessListener {
+            Log.d("Network", "Advertising...")
+            localPlayer.isHost = true
+        }.addOnFailureListener {
+            Log.d("Network", "Failed to start hosting...")
+        }
+    }
+
+    fun startDiscovering() {
+        Log.d("Network", "Start discovering...")
+        networkState.isDiscovering = true
+        val discoveryOptions = DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build()
+
+        connectionsClient.startDiscovery(
+            BuildConfig.LIBRARY_PACKAGE_NAME,
+            endpointDiscoveryCallback,
+            discoveryOptions
+        ).addOnSuccessListener {
+            Log.d("Network", "Discovering...")
+            networkState.isDiscovering = true
+        }.addOnFailureListener {
+            Log.d("Network", "Failed to start discovering...")
+        }
+    }
 }

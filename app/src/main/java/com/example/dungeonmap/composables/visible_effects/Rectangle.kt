@@ -28,6 +28,7 @@ fun RectangleEffect(mVM: MainViewModel) {
     var startPos: Position by remember { mutableStateOf(Position.Zero) }
     var dimensions: Size by remember { mutableStateOf(Size.Zero) }
 
+
     Box (modifier = Modifier
         .fillMaxSize()
         //.background(Color.White)

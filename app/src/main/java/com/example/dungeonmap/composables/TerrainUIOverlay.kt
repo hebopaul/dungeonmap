@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -44,16 +45,17 @@ import kotlinx.coroutines.delay
 
 // This composable is used to add all the buttons etc.
 // on the Terrain
-@OptIn(ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TerrainUIOverlay( mVM: MainViewModel ) {
 
     //cool die animation
     val shake = remember { Animatable(0f) }
     var d20Clicked by remember { mutableStateOf(0L) }
-    var pointerPosition by remember { mutableStateOf(Position.Zero)}
-    var pointerIsDragged by remember { mutableStateOf(false)}
-    
+    var pointerPosition by remember { mutableStateOf(Position.Zero) }
+    var pointerIsDragged by remember { mutableStateOf(false) }
+
     LaunchedEffect(d20Clicked) {
         if (d20Clicked != 0L) {
             for (i in 0..10) {
@@ -76,12 +78,15 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
     }
     Box(
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
         LaunchedEffect(pointerIsDragged) {
-            if (!pointerIsDragged) delay (10000)
+            if (!pointerIsDragged) delay(10000)
             mVM.animatedPointerStopped()
         }
-        if (mVM.tempPointerEffect != null) InvokeParticles(position = pointerPosition, duration = 10000)
+        if (mVM.tempPointerEffect != null) InvokeParticles(
+            position = pointerPosition,
+            duration = 10000
+        )
 
 
         if (mVM.uiIsVisible) Surface(
@@ -92,25 +97,35 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                 .size(1000.toDp)
                 .clip(CircleShape)
                 .alpha(0.3F)
-        ){}
-        
-        if (mVM.uiIsVisible) Row ( 
+        ) {}
+
+        if (mVM.uiIsVisible) Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.align(Alignment.BottomCenter)
-        ){
+        ) {
 
             IconButton(
                 onClick = { mVM.setPickerVisibility(true) },
-                content = { Icon(   imageVector = Icons.Outlined.AddCircleOutline,
-                                    contentDescription = "add item",
-                                    tint = Color.White                    )}
+                content = {
+                    Icon(
+                        imageVector = Icons.Outlined.AddCircleOutline,
+                        contentDescription = "add item",
+                        tint = Color.White
+                    )
+                }
             )
             IconButton(
-                onClick = { d20Clicked = System.currentTimeMillis()
-                            mVM.rollForInitiative() },
-                content = { Icon(   painter = painterResource(mVM.randomD20),
-                                    contentDescription = "roll for initiative",
-                                    tint = Color.Unspecified            )},
+                onClick = {
+                    d20Clicked = System.currentTimeMillis()
+                    mVM.rollForInitiative()
+                },
+                content = {
+                    Icon(
+                        painter = painterResource(mVM.randomD20),
+                        contentDescription = "roll for initiative",
+                        tint = Color.Unspecified
+                    )
+                },
                 modifier = Modifier
                     .scale(1.5F + animateFloatAsState(targetValue = if (d20Clicked != 0L) 2F else 0F).value)
                     .offset(x = 0.toDp, y = -30.toDp)
@@ -119,9 +134,10 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
             IconButton(
                 onClick = {
                     mVM.effectCreatorIsVisible = true
-                    mVM.uiIsVisible = false                               },
-                content = { 
-                    Icon(   
+                    mVM.uiIsVisible = false
+                },
+                content = {
+                    Icon(
                         imageVector = Icons.Filled.StarOutline,
                         contentDescription = "add item",
                         tint = Color.White,
@@ -140,10 +156,8 @@ fun TerrainUIOverlay( mVM: MainViewModel ) {
                 }
             )
         }
+
+
     }
 }
 
-@Composable
-fun RollForInitiative(mVM: MainViewModel) {
-
-}

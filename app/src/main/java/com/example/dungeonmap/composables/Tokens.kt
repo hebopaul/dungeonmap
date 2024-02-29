@@ -44,17 +44,17 @@ import com.example.dungeonmap.utilities.toDp
 
 
 @Composable
-fun Tokens(mVM: MainViewModel) {
+fun Tokens(mVM: MainViewModel, modifier: Modifier) {
     mVM.activeTokens.collectAsState( initial = null).value?.forEach {
-        TokenBox(mVM, it)
+        TokenBox(mVM, it, modifier)
     }
 
 }
 val tokenBoxSize = 200
 @Composable
-fun TokenBox (mVM: MainViewModel, token: Token) {
+fun TokenBox (mVM: MainViewModel, token: Token, modifier: Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .offset(
                 x = token.position.x.toDp,
                 y = token.position.y.toDp
@@ -64,9 +64,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        val boxAnim by  animateDpAsState( targetValue =
-            if (token.size < 0.4F) (tokenBoxSize * mVM.globalScale).toDp
-            else (tokenBoxSize/0.4F * token.size * mVM.globalScale).toDp, label = ""
+        val boxAnim by  animateDpAsState( targetValue =(tokenBoxSize/0.4F * token.size * mVM.globalScale).toDp, label = ""
         )
 
         Surface(
@@ -74,9 +72,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
             modifier = Modifier
                 .clip(CircleShape)
                 .alpha(if (token.isSelected) 0.4F else 0F)
-                .size( animateDpAsState( targetValue = if (token.isSelected) boxAnim else 0.toDp,
-                                        animationSpec = tween(500),
-                                        label = "shade animation").value
+                .size( if (token.isSelected) boxAnim else 0.toDp,
                 )
         ){}
         AnimatedVisibility(
@@ -91,7 +87,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
                 tint = MaterialTheme.colorScheme.error,
                 contentDescription = "delete",
                 modifier = Modifier
-                    .offset(x = (-boxAnim/3), y = -boxAnim/4)
+                    .offset(x = (-boxAnim*0.13F), y = -boxAnim*0.08F)
                     .clickable { mVM.deleteToken(token.uuid) }
 
             )
@@ -108,7 +104,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
                 tint = Color.White,
                 contentDescription = "duplicate",
                 modifier = Modifier
-                    .offset(x = 0.toDp, y = -boxAnim/3)
+                    .offset(x = 0.toDp, y = -boxAnim*0.15F)
                     .clickable { mVM.duplicateToken(token) }
             )
         }
@@ -124,7 +120,7 @@ fun TokenBox (mVM: MainViewModel, token: Token) {
                 tint = Color.White,
                 contentDescription = "initiative",
                 modifier = Modifier
-                    .offset(x = boxAnim/3, y = -boxAnim/4)
+                    .offset(x = boxAnim*0.13F, y = -boxAnim*0.08F)
                     .clickable { mVM.setTokenInitiative(10, token.uuid) }
             )
         }
